@@ -2,7 +2,8 @@
 title: "Project 2"
 author: "Rohan Prabhune, Naman Goel"
 date: "`r Sys.Date()`"
-output: html_document
+output: github_document
+always_allow_html: true
 ---
 ```{r Temp2,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
 wrapper <- function(x, ...) 
@@ -21,6 +22,7 @@ library(knitr)
 library(ggplot2)
 library(kableExtra)
 library(patchwork)
+library(rmarkdown)
 ```
 <!--*************************************************************************-->
 # Functions to query endpoints
@@ -236,5 +238,4 @@ ggplot(df_combined, aes(x=weighted_avg_price)) + geom_histogram(aes(fill=company
 ```{r 6_4,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 ggplot(df_info, aes(x=type)) + geom_bar(fill="steelblue") + labs(x ="Type of tickers",title="Bar plot for number of stock tickers for each type") + theme(text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
 ```
-
 

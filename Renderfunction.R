@@ -1,0 +1,1 @@
+rmarkdown::render(input = "Project2_main.Rmd",output_file = "README.md")
