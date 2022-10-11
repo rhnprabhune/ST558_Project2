@@ -1,0 +1,240 @@
+---
+title: "Project 2"
+author: "Rohan Prabhune"
+date: "`r Sys.Date()`"
+output: html_document
+---
+```{r Temp1,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
+wrapper <- function(x, ...) 
+{
+  paste(strwrap(x, ...), collapse = "\n")
+}
+#knitr::opts_chunk$set(fig.width=8, fig.height=7) 
+knitr::opts_chunk$set(fig.align = 'center') 
+```
+# Required packages list
+```{r 1_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+library(httr)
+library(jsonlite)
+library(tidyverse)
+library(knitr)
+library(ggplot2)
+library(kableExtra)
+library(patchwork)
+```
+<!--*************************************************************************-->
+# Functions to query endpoints
+## Endpoint 1 - Four modifications
+```{r 2_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
+                           end_date="2022-08-31",limit=50){
+  url=paste0("https://api.polygon.io/v2/aggs/ticker/",ticker,
+             "/range/1/day/",start_date,"/",end_date,
+             "?adjusted=true&sort=asc&limit=",limit,"&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
+  response_obj <- GET(url)
+  parsed <- fromJSON(rawToChar(response_obj$content))
+  df <- as_tibble(parsed$results)
+  df <- df %>% rename(close_price=c,highest_price=h,lowest_price=l,num_transactions=n,
+                      open_price=o,timestamp=t,vol=v,weighted_avg_price=vw) 
+  df$ticker <- rep(ticker,limit)
+  df$company_name <- rep(company_name,limit)
+  df$start_date <- start_date
+  df$end_date <- end_date
+  df <- df %>% select(ticker,company_name,everything())
+  return(df)
+}
+#TODO: Convert timestamp
+```
+
+## Endpoint 2 - Two modifications
+Searches only stocks.Gives the first ticker if the name is not complete. Limit is 1000 and its sorted in ascending order.
+```{r 2_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+get_ticker_symbol <- function(name){
+  url=paste0("https://api.polygon.io/v3/reference/tickers?market=stocks&search=",name,"&active=true&sort=ticker&order=asc&limit=1000&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
+  response_obj <- GET(url)
+  parsed<- fromJSON(rawToChar(response_obj$content))
+  df <- as_tibble(parsed$results)
+  return(list(df$ticker[[1]],df$name[[1]]))
+}
+```
+
+```{r 2_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+get_ticker_info <- function(market){
+  url=paste0("https://api.polygon.io/v3/reference/tickers?market=",market,"&active=true&sort=ticker&order=asc&limit=1000&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
+  response_obj <- GET(url)
+  parsed<- fromJSON(rawToChar(response_obj$content))
+  df <- as_tibble(parsed$results) %>% select(ticker,name,primary_exchange,type)
+  return(df)
+}
+```
+
+## Endpoint 3 - One modification
+```{r 2_4,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+get_grouped_daily <- function(date="2020-10-14"){
+  url=paste0("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/",date,"?adjusted=true&include_otc=true&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
+  response_obj <- GET(url)
+  parsed <- fromJSON(rawToChar(response_obj$content))
+  df <- as_tibble(parsed$results)
+  df <- df %>% rename(Ticker=T,volume=v,weighted_avg_price=vw,open_price=o,
+                      close_price=c,highest_price=h,lowest_price=l,
+                      num_transactions=n,timestamp=t)
+  df$date <- date
+  return(df)
+}
+```
+
+## Endpoint 4 
+```{r 2_5,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+get_ticker_type_details <- function(){
+  response_obj <- GET("https://api.polygon.io/v3/reference/tickers/types?apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
+  parsed <- fromJSON(rawToChar(response_obj$content))
+  df <- as_tibble(parsed$results) 
+  return(df)
+}
+```
+
+## Endpoint 5 
+```{r 2_6,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+get_exchanges_details <- function(){
+  response_obj <- GET("https://api.polygon.io/v3/reference/exchanges?asset_class=stocks&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
+  parsed <- fromJSON(rawToChar(response_obj$content))
+  df <- as_tibble(parsed$results)  
+  return(df)
+}
+```
+<!--*************************************************************************-->
+# Creation of relevant new variables
+```{r 3_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+df_grouped <- get_grouped_daily("2020-11-16")
+df_grouped <- df_grouped %>% mutate(percent_change = round(((close_price-open_price)/open_price)*100,2)) %>% arrange(desc(percent_change))
+df_grouped$percent_change_chr <- paste(as.character(df_grouped$percent_change),'%')
+df_grouped %>% select(Ticker,open_price,close_price,percent_change_chr,everything())
+```
+
+<!--*************************************************************************-->
+# Combining data from API Calls
+```{r 4_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+ticker_symbol1 <- get_ticker_symbol(name="Apple")
+df1 <- get_stocks_agg(ticker_symbol1[[1]],ticker_symbol1[[2]],start_date="2022-01-01",end_date="2022-08-31")
+df1
+
+ticker_symbol2 <- get_ticker_symbol(name="Tesla")
+df2 <- get_stocks_agg(ticker_symbol2[[1]],ticker_symbol2[[2]],start_date="2022-01-01",end_date="2022-08-31")
+df2
+
+ticker_symbol3 <- get_ticker_symbol(name="Nvidia")
+df3 <- get_stocks_agg(ticker_symbol3[[1]],ticker_symbol3[[2]],start_date="2022-01-01",end_date="2022-08-31")
+df3
+```
+
+```{r 4_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+df_combined <- bind_rows(df1, df2, df3)
+ggplot(df_combined,aes(x=timestamp,y=close_price)) + geom_line(aes(color=company_name),size=1) + labs(x="Time",y="Closing price",title="Closing stock price over time for Apple, Nvidia and Tesla") +  scale_color_discrete(name = "Company Name")+theme(plot.title = element_text(hjust = 0.5))
+```
+
+<!--*************************************************************************-->
+# Contingency tables
+```{r 4_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+df_info <- get_ticker_info("stocks")
+
+tab1 <- table(df_info$type,dnn=c("Ticker Types"))
+tab2 <- table(df_info$type,df_info$primary_exchange,dnn=c("Ticker Types","Exchanges"))
+
+tab1 %>%
+  kbl(caption="Table for Ticker Types") %>%
+  kable_classic(full_width = F)
+tab2 %>%
+  kbl(caption="Table for Ticker Types and Exchanges") %>%
+  kable_classic(full_width = F)
+```
+
+<!--*************************************************************************-->
+# Numerical summaries
+```{r 5_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+df_combined <- bind_rows(df1, df2, df3)
+start_date = as.character(unique(df_combined$start_date))
+end_date = as.character(unique(df_combined$end_date))
+# Open Price
+df_combined_open <- df_combined %>% 
+  group_by(company_name) %>% 
+  summarise("Min." = min(open_price),
+            "1st Quartile" = quantile(open_price,0.25),
+            "Median." = median(open_price),
+            "Mean."=mean(open_price),
+            "3rd Quartile" = quantile(open_price,0.75),
+            "Max."= max(open_price),
+            "Std. Dev." = sd(open_price))
+
+# Close Price
+df_combined_close <- df_combined %>% 
+  group_by(company_name) %>% 
+  summarise("Min." = min(close_price),
+            "1st Quartile" = quantile(close_price,0.25),
+            "Median." = median(close_price),
+            "Mean."=mean(close_price),
+            "3rd Quartile" = quantile(close_price,0.75),
+            "Max."= max(close_price),
+            "Std. Dev." = sd(close_price))
+
+df_combined_open %>%
+  kbl(caption=paste0("Summary Statistics for Open Price per Company between ",start_date," and ",end_date)) %>%
+  kable_classic()
+
+df_combined_close %>%
+  kbl(caption=paste0("Summary Statistics for Close Price per Company between ",start_date," and ",end_date)) %>%
+  kable_classic()
+```
+
+<!--*************************************************************************-->
+# Plots
+Did not map the ticker symbol to the company name because there is a max limit of 1000 on the "Ticker" reference end point. So we do not get all the data.
+
+## Plotting new created variable
+```{r 6_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+#Top-10 increases
+df_top10 <- head(df_grouped, 10)
+df_top10$Ticker <- factor(df_top10$Ticker, levels=df_top10$Ticker[order(-df_top10$percent_change)])
+
+# Plot
+date <- unique(df_top10$date)
+ggplot(df_top10, aes(x=Ticker, y=percent_change)) + 
+geom_col(width=0.3, color='steelblue', fill='steelblue') + 
+theme(axis.text.x=element_text(angle=90), text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + labs(y="Percent increase", x ="Stock ticker",title = paste0("Highest stock price increase on ",date)) + geom_text(aes(label = percent_change_chr), vjust = -0.5, size=3)
+
+#Top-10 decreases
+df_bottom10 <- tail(df_grouped, 10)
+df_bottom10$percent_change <- abs(df_bottom10$percent_change)
+df_bottom10$Ticker <- factor(df_bottom10$Ticker, levels=df_bottom10$Ticker[order(-df_bottom10$percent_change)])
+
+# Plot
+date = unique(df_bottom10$date)
+ggplot(df_bottom10, aes(x=Ticker, y=percent_change)) + 
+geom_col(width=0.3, color='red', fill='red') + 
+theme(axis.text.x = element_text(angle=90),text = element_text(size=12),plot.title = element_text(hjust = 0.5)) + labs(y="Percent decrease", x ="Stock ticker", title = paste0("Highest stock price decrease on ",date)) + geom_text(aes(label=percent_change_chr), vjust =-0.5, size=3)
+```
+
+## Box plots for highest and lowest price per company in a given time period
+```{r 6_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+start_date = as.character(unique(df_combined$start_date))
+end_date = as.character(unique(df_combined$end_date))
+
+ggplot(df_combined, aes(x=company_name, y=highest_price)) + geom_boxplot(color="blue",fill="grey") + labs(y="Highest price", x ="Company Name", title=paste0("Boxplot for highest stock price between ",start_date," and ",end_date)) 
+
+ggplot(df_combined, aes(x=company_name, y=lowest_price)) + geom_boxplot(color="red",fill="grey") + labs(y="Lowest price", x ="Company Name", title=paste0("Boxplot for lowest stock price between ",start_date," and ",end_date)) 
+```
+
+## Histogram 
+```{r 6_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+start_date = as.character(unique(df_combined$start_date))
+end_date = as.character(unique(df_combined$end_date))
+
+my_title <- paste0("Histogram of weighted average price per company between ",start_date," and ",end_date)
+ggplot(df_combined, aes(x=weighted_avg_price)) + geom_histogram(aes(fill=company_name),binwidth=8) + labs(x ="Weighted average price") + scale_fill_discrete(name = "Company Name") + ggtitle(wrapper(my_title, width=80))
+```
+
+## Bar plot 
+```{r 6_4,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+ggplot(df_info, aes(x=type)) + geom_bar(fill="steelblue") + labs(x ="Type of tickers",title="Bar plot for number of stock tickers for each type") + theme(text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
+```
+
+
