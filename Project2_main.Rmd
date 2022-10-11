@@ -4,7 +4,7 @@ author: "Rohan Prabhune, Naman Goel"
 date: "`r Sys.Date()`"
 output: html_document
 ---
-```{r Temp1,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
+```{r Temp2,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
 wrapper <- function(x, ...) 
 {
   paste(strwrap(x, ...), collapse = "\n")
