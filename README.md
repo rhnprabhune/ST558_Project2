@@ -49,7 +49,7 @@ Rohan Prabhune, Naman Goel
     -   <a href="#box-plots" id="toc-box-plots">Box plots</a>
     -   <a href="#histogram" id="toc-histogram">Histogram</a>
     -   <a href="#bar-plot" id="toc-bar-plot">Bar plot</a>
-    -   <a href="#scatter-plot" id="toc-scatter-plot">Scatter plot</a>
+-   <a href="#wrap--up" id="toc-wrap--up">Wrap- Up</a>
 
 # Interacting with APIs: Financial Market Data
 
@@ -338,6 +338,8 @@ breakthrough had I worked more on this.
 
 ``` r
 df_combined <- bind_rows(df1, df2, df3)
+start_date = as.character(unique(df_combined$start_date))
+end_date = as.character(unique(df_combined$end_date))
 
 #Plot
 ggplot(df_combined,aes(x=timestamp,y=close_price)) + 
@@ -348,7 +350,7 @@ ggplot(df_combined,aes(x=timestamp,y=close_price)) +
   theme(plot.title = element_text(hjust = 0.5))
 ```
 
-<img src="README_files/figure-gfm/4_2-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/2_1_2-1.png" style="display: block; margin: auto;" />
 From the plot we can see the stock price Tesla has dropped the most but
 it is still having higher price than Nvidia and Apple between 1 Jan 2022
 to 31 August 2022. Elon Musk’s deal with Twitter falling out can be one
@@ -435,7 +437,7 @@ labs(y="Percent increase", x ="Stock ticker",
 geom_text(aes(label = percent_change_chr), vjust = -0.5, size=3)
 ```
 
-<img src="README_files/figure-gfm/6_1-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/2_2_2-1.png" style="display: block; margin: auto;" />
 
 ``` r
 #Top-10 losses
@@ -455,7 +457,7 @@ labs(y="Percent decrease", x ="Stock ticker",
 geom_text(aes(label=percent_change_chr), vjust =-0.5, size=3)
 ```
 
-<img src="README_files/figure-gfm/6_1-2.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/2_2_2-2.png" style="display: block; margin: auto;" />
 
 From the plot above we can see that on 16th Nov 2020, the stock price
 for ZXZZT(NASDAQ TEST STOCK) noticed maximum gain of 93.91%. After that,
@@ -860,10 +862,10 @@ exchange.
 
 ## Numerical summaries
 
+Here we have created summary Statistics for **open_price** and
+**close_price** for each company between 2022-01-01 and 2022-08-31.
+
 ``` r
-df_combined <- bind_rows(df1, df2, df3)
-start_date = as.character(unique(df_combined$start_date))
-end_date = as.character(unique(df_combined$end_date))
 # Open Price
 df_combined_open <- df_combined %>% 
   group_by(company_name) %>% 
@@ -1130,17 +1132,23 @@ Tesla, Inc. Common Stock
 
 ## Box plots
 
-``` r
-start_date = as.character(unique(df_combined$start_date))
-end_date = as.character(unique(df_combined$end_date))
+The above numerical summaries can be visualized using a box plot. Here
+we have created a box plot for **highest stock price** and \*\*lowest
+stock \*price\*\* for each company between 2022-01-01 and 2022-08-31.
 
+``` r
 ggplot(df_combined, aes(x=company_name, y=highest_price)) + 
   geom_boxplot(color="blue",fill="grey") + 
   labs(y="Highest price", x ="Company Name", 
        title=paste0("Boxplot for highest stock price between ",start_date," and ",end_date)) 
 ```
 
-<img src="README_files/figure-gfm/6_2-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/2_5_1-1.png" style="display: block; margin: auto;" />
+From the above plot we can see that mean highest price for Apple is
+lowest followed by Nvidia and then Tesla. From the width of the box plot
+we can also infer that highest price for Tesla has varied the most in
+the given date range where as Apple’s highest price has varied the
+least.
 
 ``` r
 ggplot(df_combined, aes(x=company_name, y=lowest_price)) + 
@@ -1149,18 +1157,23 @@ ggplot(df_combined, aes(x=company_name, y=lowest_price)) +
        title=paste0("Boxplot for lowest stock price between ",start_date," and ",end_date)) 
 ```
 
-<img src="README_files/figure-gfm/6_2-2.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/2_5_2-1.png" style="display: block; margin: auto;" />
+The above plot for lowest price is analogous the box plot for the
+highest price. It follows the same trend as seen in the plot for highest
+price.
+
+<!--*************************************************************************-->
 
 ## Histogram
+
+Here we have used the `df_combined` to create a histogram for the
+**weighted average stock price** for each company.
 
 ``` r
 wrapper <- function(x, ...) 
 {
   paste(strwrap(x, ...), collapse = "\n")
 }
-start_date = as.character(unique(df_combined$start_date))
-end_date = as.character(unique(df_combined$end_date))
-
 my_title <- paste0("Histogram of weighted average price per company between ",start_date," and ",end_date)
 
 ggplot(df_combined, aes(x=weighted_avg_price)) + 
@@ -1170,23 +1183,38 @@ ggplot(df_combined, aes(x=weighted_avg_price)) +
   ggtitle(wrapper(my_title, width=80))
 ```
 
-<img src="README_files/figure-gfm/6_3-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/2_6_1-1.png" style="display: block; margin: auto;" />
+Consistent with the trend from the previous plots, we can see that
+weighted average price for Apple is at the lower end while for Tesla it
+as at higher end. We can also infer from the plots that weighted average
+price for Apple and Tesla roughly follow Gaussian distribution. While
+the spread for Apple around the mean is the least, the spread for Tesla
+around its mean is the most. Probably because of Elon’s Tweets !
+
+<!--*************************************************************************-->
 
 ## Bar plot
 
+Here we have used the one way contingency table created in above
+sections to create a bar plot with the type of tickers on the x axis.
+
 ``` r
-ggplot(df_info, aes(x=type)) + 
+ggplot(df_tables, aes(x=description)) + 
   geom_bar(fill="steelblue") + 
   labs(x ="Type of tickers",
        title="Bar plot for number of stock tickers for each type") + 
-  theme(text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + 
+  theme(text=element_text(size=14), plot.title = element_text(hjust = 0.5),
+        axis.text.x = element_text(angle = 90)) + 
   geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
 ```
 
-<img src="README_files/figure-gfm/6_4-1.png" style="display: block; margin: auto;" />
-
-## Scatter plot
-
+<img src="README_files/figure-gfm/2_7_1-1.png" style="display: block; margin: auto;" />
+The above plot provides a good visualization of the one way contingency
+table. We can infer that number of tickers of type “Common Stock” are
+the highest with 561 and number of tickers of type “Exchange Traded
+Note” are the least with 5.
+<!--*************************************************************************-->
+\## Scatter plot  
 The scatter plot has been used to plot the percentage change in returns
 for the stocks Apple, Tesla and Nvidia for a date range and can be
 differentiated based on the different colours. From the plot, we can see
@@ -1203,4 +1231,12 @@ facet_grid(cols = vars(company_name)) +
 scale_color_discrete(name = "Company Name")
 ```
 
-<img src="README_files/figure-gfm/6_5-1.png" style="display: block; margin: auto;" />
+<img src="README_files/figure-gfm/2_8_1-1.png" style="display: block; margin: auto;" />
+<!--*************************************************************************-->
+
+# Wrap- Up
+
+This vignette mainly focuses on communicating with the REST API
+Endpoints, creating functions in R to fetch data from the endpoints and
+basic data exploration- including numerical summaries, contingency
+tables and plots.
