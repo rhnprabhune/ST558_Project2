@@ -1,7 +1,7 @@
 Project 2
 ================
 Rohan Prabhune, Naman Goel
-2022-10-11
+2022-10-12
 
 # Required packages list
 
@@ -930,3 +930,20 @@ ggplot(df_info, aes(x=type)) + geom_bar(fill="steelblue") + labs(x ="Type of tic
 ```
 
 <img src="README_files/figure-gfm/6_4-1.png" style="display: block; margin: auto;" />
+
+## Scatter plot
+
+The scatter plot has been used to plot the percentage change in returns
+for the stocks Apple, Tesla and Nvidia for a date range and can be
+differentiated based on the different colours. From the plot, we can see
+how varied returns have been on a daily basis but if we look carefully
+we can see that there is a certain correlation in the returns and on
+most days the movement for all 3 technology stocks is in the same
+direction of either gaining or losing
+
+``` r
+df_comb <- df_combined %>% mutate(percent_change = round(((close_price-open_price)/open_price)*100,2))
+ggplot(df_comb, aes(x=timestamp, y=percent_change, color=ticker)) + geom_point()
+```
+
+<img src="README_files/figure-gfm/6_5-1.png" style="display: block; margin: auto;" />
