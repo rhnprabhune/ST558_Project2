@@ -15,7 +15,7 @@ This vignette shows how to work with API. This will demonstrate how to fetch dat
 The API that we have chosen for this project is [Financial Market Data](https://polygon.io/docs/stocks).The Polygon.io Stocks API provides REST endpoints that let you query the latest market data from all US stock exchanges. 
 
 ## Requirements
-I used the following packages in the creation of the vignette:
+We used the following packages in the creation of the vignette:
 
 * `httr`: This is used to access the REST API endpoint.  
 * `jsonlite`: This is used to parse the fetched data into a data frame.  
@@ -34,15 +34,15 @@ library(kableExtra)
 This section describes the functions created by us to interact with the API endpoints to fetch data as well as some metadata required for making the plots more descriptive.  
 
 ### [Aggregates (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to) Endpoint  
-Get aggregate bars for a stock over a given date range in custom time window sizes.  
+Get financoal data for a stock within a given time frame
 
 #### `get_stocks_agg`
 This function has four modifications from the user. The user can provide the following inputs to the functions:  
 
 * **ticker** and **company_name**: The ticker symbol and registered name of the company. If the user does not have this information, this can be fetched using `get_ticker` function described ahead.  
-* **start_date**: The start of the aggregate time window (A date with the format YYYY-MM-DD).  
-* **end_date**: The end of the aggregate time window (A date with the format YYYY-MM-DD).  
-* **limit**: Limits the number of base aggregates queried to create the aggregate results.  
+* **start_date**: The start of the time window (A date with the format YYYY-MM-DD).  
+* **end_date**: The end of the time window (A date with the format YYYY-MM-DD).  
+* **limit**: Limits the number of entries queried to create the aggregate results.  
 
 This function returns a data frame with the close price, open price, highest price, lowest price etc for the stock over the given date range.  
 ```{r 1_2_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
@@ -66,10 +66,10 @@ get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
 ```
 
 ### [Tickers](https://polygon.io/docs/stocks/get_v3_reference_tickers) Endpoint  
-Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Crypto, and Forex.  
+Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Cryptocurrencies, and Currencies or Foreign Exchange.  
 
 #### `get_ticker`
-This function searches only stocks market. The user can provide the name of the company the user wants the ticker information of. For example: If a user wants the ticker the ticker information for Apple, the user can call the function as `get_ticker(name="Apple")`. This function will return the ticker symbol **AAPL** and the registered company name **Apple Inc.** as a list. The user can pass on the contents of this list to `get_stocks_agg` function mentioned above to get the aggregate bars over a date range. If there are multiple matches for a given name, the function returns first ticker information.  
+This function searches only the stock market. The user can provide the name of the company which they would like the ticker information for For example: If a user wants the ticker, the ticker information for Apple, the user can call the function as `get_ticker(name="Apple")`. This function will return the ticker symbol **AAPL** and the registered company name **Apple Inc.** as a list. The user can pass on the contents of this list to `get_stocks_agg` function mentioned above to get the aggregate bars over a date range. If there are multiple matches for a given name, the function returns the first ticker information from the list of matches.  
 ```{r 1_2_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_ticker <- function(name){
   url=paste0("https://api.polygon.io/v3/reference/tickers?market=stocks&search=",name,"&active=true&sort=ticker&order=asc&limit=1000&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -81,7 +81,7 @@ get_ticker <- function(name){
 ```
 
 #### `get_ticker_info`  
-This function provides details of the ticker for a given market. The user can provide **market** value to this function. The possible values of market can be **stocks**, **crypto**, **fx** or **otc**. This function returns the primary exchange and type of ticker information for each ticker in each market.  
+This function provides details of the ticker for a given market. The user can provide the value for **market** to this function. The possible values of market can be **stocks**, **crypto**, **fx** or **otc**. This function returns the primary exchange and type of ticker information for each security in each market.  
 ```{r 1_2_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_ticker_info <- function(market){
   url=paste0("https://api.polygon.io/v3/reference/tickers?market=",market,"&active=true&sort=ticker&order=asc&limit=1000&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -93,7 +93,7 @@ get_ticker_info <- function(market){
 ```
 
 ### [Grouped Daily (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_grouped_locale_us_market_stocks__date) Endpoint  
-Get the daily open, high, low, and close (OHLC) for the entire stocks markets
+Get the daily open, high, low, and close (OHLC) for the entire universe of stocks
 
 #### `get_grouped_daily`
 This function takes in **date** as an input from the user and returns the open, high, low, and close (OHLC) for the entire stocks markets for that particular date.  
@@ -114,7 +114,7 @@ get_grouped_daily <- function(date="2020-10-14"){
 ### [Ticker Types](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) Endpoint  
 
 #### `get_ticker_type_details`
-This function is used to get get metadata information of all the ticker types that Polygon.io knows about.  
+This function is used to get the metadata information of all the ticker types that Polygon.io has data for.
 ```{r 1_2_5,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_ticker_type_details <- function(){
   response_obj <- GET("https://api.polygon.io/v3/reference/tickers/types?apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -127,7 +127,7 @@ get_ticker_type_details <- function(){
 ### [Exchanges](https://polygon.io/docs/stocks/get_v3_reference_exchanges) Endpoint  
 
 #### `get_exchanges_details`
-This function is used to get metadata information of all the stock exchanges that Polygon.io knows about.
+This function is used to get metadata information of all the stock exchanges that Polygon.io has data for.
 ```{r 1_2_6,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_exchanges_details <- function(){
   response_obj <- GET("https://api.polygon.io/v3/reference/exchanges?asset_class=stocks&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -139,8 +139,8 @@ get_exchanges_details <- function(){
 <!--*************************************************************************-->
 # Exploratory Data Analysis (EDA)
 ## Combining data from API Calls
-Here we have combined the aggregate bars for stocks of 3 companies, namely Apple, Tesla and Nvidia from 1 Jan 2022 to 31 August 2022.  
-To find the stock information for Apple, we have passed "Apple" as an input argument to `get_ticker` function. This function returns a list `ticker_symbol1` which consists of ticker symbol "AAPL" and name of the company which is "Apple Inc.".  
+Here we have called the data of 3 stocks namely Apple, Tesla and Nvidia from 1 Jan 2022 to 31 August 2022.  
+To find the stock information for Apple, we have passed "Apple" as an input argument to `get_ticker` function. This function returns a list `ticker_symbol1` which consists of ticker symbol "AAPL" and name of the company which is "Apple Inc.". The same was repeated for the other 2 symbols as well.  
 
 This information along with start date and end date is passed to the function `get_stocks_agg`. The limit argument is not passed, so the function takes the default value of 50. This function fetches the stock information for Apple in the given date range and returns a data frame `df1`. Similarly, this is done to get the stocks information for Tesla and Nvidia in `df2` and `df3` respectively.  
 ```{r 2_1_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
@@ -158,7 +158,7 @@ df3
 ```
 
 Here we have combined df1, df2 and df3 into vertically into a data frame `df_combined`. This gives us all the stock information for the 3 companies in a single data frame. This data frame is further used to plot the **close_price** for the 3 companies in a given date range.   
-For this the time stamp on x-axis is in Unix Msec. I tried to convert it into Human readable datetime format using multiple ways but I was unable to do it due deadline for the project. I am sure I would have gotten a breakthrough had I worked more on this.
+For this the time stamp on x-axis is in Unix Msec. We tried to convert it into Human readable datetime format using multiple ways but we were unable to do it due deadline for the project. We are sure we would have gotten a breakthrough had we worked more on this.
 ```{r 2_1_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE,fig.width = 10}
 df_combined <- bind_rows(df1, df2, df3)
 start_date = as.character(unique(df_combined$start_date))
@@ -172,7 +172,7 @@ ggplot(df_combined,aes(x=timestamp,y=close_price)) +
   scale_color_discrete(name = "Company Name")+
   theme(plot.title = element_text(hjust = 0.5))
 ```
-From the plot we can see the stock price Tesla has dropped the most but it is still having higher price than Nvidia and Apple between 1 Jan 2022 to 31 August 2022. Elon Musk's deal with Twitter falling out can be one of the factor for this sink. 
+From the plot we can see the stock price Tesla has dropped the most but it is still having higher price than Nvidia and Apple between 1 Jan 2022 to 31 August 2022. Elon Musk's deal with Twitter falling out can be one of the factor for this sink. But overall, this can be attributed to the bearish trend that is being observed currently in the markets currently due to high inflation, tapering by the FED, geopolitical tensions and other macroeconomic factors which is a clear correlation can be observed between the price performance of the 2 stocks.  
 
 <!--*************************************************************************-->
 ## Creation of new variables
@@ -230,7 +230,7 @@ geom_text(aes(label=percent_change_chr), vjust =-0.5, size=3)
 ```
 
 From the plot above we can see that on 16th Nov 2020, the stock price for ZXZZT(NASDAQ TEST STOCK) noticed maximum gain of 93.91%. After that, the highest gain was noticed by AIRTW (Air T, Inc.) which was 51.34% and WWR(Westwater Resources, Inc.) which was 45.48%.  
-On similar lines, the stock price for KTOVW(Kitov Pharma Ltd. Warrants) noticed highest loss of 43.93%. 
+On similar lines, the stock price for KTOVW(Kitov Pharma Ltd. Warrants) noticed highest loss of -43.93%. 
 Thus this plot allows the user to find out the biggest gainers and losers on any given day.
 
 <!--*************************************************************************-->
