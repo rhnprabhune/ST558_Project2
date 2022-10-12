@@ -299,6 +299,7 @@ df_combined_close %>%
 ```
 
 <!--*************************************************************************-->
+
 ## Box plots
 The above numerical summaries can be visualized using a box plot. Here we have created a box plot for **highest stock price** and **lowest stock *price** for each company between `r start_date` and `r end_date`.
 ```{r 2_5_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
@@ -318,6 +319,7 @@ ggplot(df_combined, aes(x=company_name, y=lowest_price)) +
 The above plot for lowest price is analogous the box plot for the highest price. It follows the same trend as seen in the plot for highest price.  
 
 <!--*************************************************************************-->
+
 ## Histogram  
 Here we have used the `df_combined` to create a histogram for the **weighted average stock price** for each company.
 ```{r 2_6_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE,fig.width = 10}
@@ -336,6 +338,7 @@ ggplot(df_combined, aes(x=weighted_avg_price)) +
 Consistent with the trend from the previous plots, we can see that weighted average price for Apple is at the lower end while for Tesla it as at higher end. We can also infer from the plots that weighted average price for Apple and Tesla roughly follow Gaussian distribution. While the spread for Apple around the mean is the least, the spread for Tesla around its mean is the most. Probably because of Elon's Tweets ! 
 
 <!--*************************************************************************-->
+
 ## Bar plot 
 Here we have used the one way contingency table created in above sections to create a bar plot with the type of tickers on the x axis.   
 ```{r 2_7_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE,fig.height=10}
@@ -347,8 +350,9 @@ ggplot(df_tables, aes(x=description)) +
         axis.text.x = element_text(angle = 90)) + 
   geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
 ```
-The above plot provides a good visualization of the one way contingency table. We can infer that number of tickers of type "Common Stock" are the highest with 561 and number of tickers of type "Exchange Traded Note" are the least with 5.
-<!--*************************************************************************-->
+The above plot provides a good visualization of the one way contingency table. We can infer that number of tickers of type "Common Stock" are the highest with 561 and number of tickers of type "Exchange Traded Note" are the least with 5.  
+<!--*************************************************************************-->  
+
 ## Scatter plot  
 The scatter plot has been used to plot the percentage change in returns for the stocks Apple, Tesla and Nvidia for a date range and can be differentiated based on the different colours. From the plot, we can see how varied returns have been on a daily basis but if we look carefully we can see that there is a certain correlation in the returns and on most days the movement for all 3 technology stocks is in the same direction of either gaining or losing
 ```{r 2_8_1, echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE,fig.width = 10}

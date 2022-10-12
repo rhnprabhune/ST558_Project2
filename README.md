@@ -49,6 +49,7 @@ Rohan Prabhune, Naman Goel
     -   <a href="#box-plots" id="toc-box-plots">Box plots</a>
     -   <a href="#histogram" id="toc-histogram">Histogram</a>
     -   <a href="#bar-plot" id="toc-bar-plot">Bar plot</a>
+    -   <a href="#scatter-plot" id="toc-scatter-plot">Scatter plot</a>
 -   <a href="#wrap--up" id="toc-wrap--up">Wrap- Up</a>
 
 # Interacting with APIs: Financial Market Data
@@ -265,21 +266,20 @@ df1
 ```
 
     ## # A tibble: 50 × 12
-    ##    ticker company_name    vol weigh…¹ open_…² close…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
-    ##    <chr>  <chr>         <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
-    ##  1 AAPL   Apple Inc.   1.05e8    181.    178.    182.    183.    178. 1.64e12  772691
-    ##  2 AAPL   Apple Inc.   9.91e7    181.    183.    180.    183.    179. 1.64e12  831890
-    ##  3 AAPL   Apple Inc.   9.45e7    177.    180.    175.    180.    175. 1.64e12  848513
-    ##  4 AAPL   Apple Inc.   9.69e7    173.    173.    172     175.    172. 1.64e12  960340
-    ##  5 AAPL   Apple Inc.   8.67e7    172.    173.    172.    174.    171. 1.64e12  716881
-    ##  6 AAPL   Apple Inc.   1.07e8    170.    169.    172.    172.    168. 1.64e12  956337
-    ##  7 AAPL   Apple Inc.   7.61e7    174.    172.    175.    175.    171. 1.64e12  649652
-    ##  8 AAPL   Apple Inc.   7.48e7    176.    176.    176.    177.    175. 1.64e12  642756
-    ##  9 AAPL   Apple Inc.   8.44e7    174.    176.    172.    177.    172. 1.64e12  692343
-    ## 10 AAPL   Apple Inc.   8.04e7    172.    171.    173.    174.    171. 1.64e12  672552
-    ## # … with 40 more rows, 2 more variables: start_date <chr>, end_date <chr>, and
-    ## #   abbreviated variable names ¹​weighted_avg_price, ²​open_price, ³​close_price,
-    ## #   ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp, ⁷​num_transactions
+    ##    ticker company_name       vol weighted_avg_price open_…¹ close…² highe…³ lowes…⁴ times…⁵ num_t…⁶ start…⁷ end_d…⁸
+    ##    <chr>  <chr>            <dbl>              <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <chr>  
+    ##  1 AAPL   Apple Inc.   104677470               181.    178.    182.    183.    178. 1.64e12  772691 2022-0… 2022-0…
+    ##  2 AAPL   Apple Inc.    99110438               181.    183.    180.    183.    179. 1.64e12  831890 2022-0… 2022-0…
+    ##  3 AAPL   Apple Inc.    94535602               177.    180.    175.    180.    175. 1.64e12  848513 2022-0… 2022-0…
+    ##  4 AAPL   Apple Inc.    96882954               173.    173.    172     175.    172. 1.64e12  960340 2022-0… 2022-0…
+    ##  5 AAPL   Apple Inc.    86709147               172.    173.    172.    174.    171. 1.64e12  716881 2022-0… 2022-0…
+    ##  6 AAPL   Apple Inc.   106754551               170.    169.    172.    172.    168. 1.64e12  956337 2022-0… 2022-0…
+    ##  7 AAPL   Apple Inc.    76138312               174.    172.    175.    175.    171. 1.64e12  649652 2022-0… 2022-0…
+    ##  8 AAPL   Apple Inc.    74805173               176.    176.    176.    177.    175. 1.64e12  642756 2022-0… 2022-0…
+    ##  9 AAPL   Apple Inc.    84405760               174.    176.    172.    177.    172. 1.64e12  692343 2022-0… 2022-0…
+    ## 10 AAPL   Apple Inc.    80440778               172.    171.    173.    174.    171. 1.64e12  672552 2022-0… 2022-0…
+    ## # … with 40 more rows, and abbreviated variable names ¹​open_price, ²​close_price, ³​highest_price, ⁴​lowest_price,
+    ## #   ⁵​timestamp, ⁶​num_transactions, ⁷​start_date, ⁸​end_date
 
 ``` r
 ticker_symbol2 <- get_ticker(name="Tesla")
@@ -288,21 +288,20 @@ df2
 ```
 
     ## # A tibble: 50 × 12
-    ##    ticker company_name    vol weigh…¹ open_…² close…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
-    ##    <chr>  <chr>         <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
-    ##  1 TSLA   Tesla, Inc.… 1.05e8    390.    383.    400.    400.    379. 1.64e12 1162844
-    ##  2 TSLA   Tesla, Inc.… 9.98e7    387.    397.    383.    403.    374. 1.64e12 1051467
-    ##  3 TSLA   Tesla, Inc.… 8.01e7    376.    382.    363.    390.    360. 1.64e12  811988
-    ##  4 TSLA   Tesla, Inc.… 9.03e7    353.    359     355.    363.    340. 1.64e12  880974
-    ##  5 TSLA   Tesla, Inc.… 8.40e7    346.    360.    342.    360.    337. 1.64e12  823560
-    ##  6 TSLA   Tesla, Inc.… 9.18e7    339.    333.    353.    353.    327. 1.64e12  971558
-    ##  7 TSLA   Tesla, Inc.… 6.60e7    353.    351.    355.    359.    346. 1.64e12  644108
-    ##  8 TSLA   Tesla, Inc.… 8.37e7    365.    360.    369.    372.    358. 1.64e12  761538
-    ##  9 TSLA   Tesla, Inc.… 9.69e7    356.    370.    344.    372.    342. 1.64e12  924351
-    ## 10 TSLA   Tesla, Inc.… 7.29e7    345.    340.    350.    351.    338. 1.64e12  710334
-    ## # … with 40 more rows, 2 more variables: start_date <chr>, end_date <chr>, and
-    ## #   abbreviated variable names ¹​weighted_avg_price, ²​open_price, ³​close_price,
-    ## #   ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp, ⁷​num_transactions
+    ##    ticker company_name                  vol weigh…¹ open_…² close…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷ start…⁸ end_d…⁹
+    ##    <chr>  <chr>                       <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <chr>  
+    ##  1 TSLA   Tesla, Inc. Common Stock   1.05e8    390.    383.    400.    400.    379. 1.64e12 1162844 2022-0… 2022-0…
+    ##  2 TSLA   Tesla, Inc. Common Stock   9.98e7    387.    397.    383.    403.    374. 1.64e12 1051467 2022-0… 2022-0…
+    ##  3 TSLA   Tesla, Inc. Common Stock   8.01e7    376.    382.    363.    390.    360. 1.64e12  811988 2022-0… 2022-0…
+    ##  4 TSLA   Tesla, Inc. Common Stock   9.03e7    353.    359     355.    363.    340. 1.64e12  880974 2022-0… 2022-0…
+    ##  5 TSLA   Tesla, Inc. Common Stock   8.40e7    346.    360.    342.    360.    337. 1.64e12  823560 2022-0… 2022-0…
+    ##  6 TSLA   Tesla, Inc. Common Stock   9.18e7    339.    333.    353.    353.    327. 1.64e12  971558 2022-0… 2022-0…
+    ##  7 TSLA   Tesla, Inc. Common Stock   6.60e7    353.    351.    355.    359.    346. 1.64e12  644108 2022-0… 2022-0…
+    ##  8 TSLA   Tesla, Inc. Common Stock   8.37e7    365.    360.    369.    372.    358. 1.64e12  761538 2022-0… 2022-0…
+    ##  9 TSLA   Tesla, Inc. Common Stock   9.69e7    356.    370.    344.    372.    342. 1.64e12  924351 2022-0… 2022-0…
+    ## 10 TSLA   Tesla, Inc. Common Stock   7.29e7    345.    340.    350.    351.    338. 1.64e12  710334 2022-0… 2022-0…
+    ## # … with 40 more rows, and abbreviated variable names ¹​weighted_avg_price, ²​open_price, ³​close_price,
+    ## #   ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp, ⁷​num_transactions, ⁸​start_date, ⁹​end_date
 
 ``` r
 ticker_symbol3 <- get_ticker(name="Nvidia")
@@ -311,21 +310,20 @@ df3
 ```
 
     ## # A tibble: 50 × 12
-    ##    ticker company_name    vol weigh…¹ open_…² close…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
-    ##    <chr>  <chr>         <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
-    ##  1 NVDA   Nvidia Corp  3.92e7    302.    298.    301.    307.    298. 1.64e12  585469
-    ##  2 NVDA   Nvidia Corp  5.27e7    291.    303.    293.    305.    283. 1.64e12  894297
-    ##  3 NVDA   Nvidia Corp  4.98e7    283.    289.    276.    294.    275. 1.64e12  836624
-    ##  4 NVDA   Nvidia Corp  4.54e7    280.    276.    282.    284.    271. 1.64e12  725603
-    ##  5 NVDA   Nvidia Corp  4.10e7    275.    281.    272.    284.    271. 1.64e12  639610
-    ##  6 NVDA   Nvidia Corp  5.95e7    264.    266.    274     275.    256. 1.64e12  991811
-    ##  7 NVDA   Nvidia Corp  4.04e7    275.    273.    278.    281.    268. 1.64e12  572165
-    ##  8 NVDA   Nvidia Corp  3.83e7    281.    281.    280.    286.    276. 1.64e12  562208
-    ##  9 NVDA   Nvidia Corp  5.39e7    271.    284.    266.    285.    265. 1.64e12  845316
-    ## 10 NVDA   Nvidia Corp  3.96e7    268.    263     269.    272.    262. 1.64e12  620045
-    ## # … with 40 more rows, 2 more variables: start_date <chr>, end_date <chr>, and
-    ## #   abbreviated variable names ¹​weighted_avg_price, ²​open_price, ³​close_price,
-    ## #   ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp, ⁷​num_transactions
+    ##    ticker company_name      vol weighted_avg_price open_p…¹ close…² highe…³ lowes…⁴ times…⁵ num_t…⁶ start…⁷ end_d…⁸
+    ##    <chr>  <chr>           <dbl>              <dbl>    <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <chr>  
+    ##  1 NVDA   Nvidia Corp  39240294               302.     298.    301.    307.    298. 1.64e12  585469 2022-0… 2022-0…
+    ##  2 NVDA   Nvidia Corp  52715440               291.     303.    293.    305.    283. 1.64e12  894297 2022-0… 2022-0…
+    ##  3 NVDA   Nvidia Corp  49806388               283.     289.    276.    294.    275. 1.64e12  836624 2022-0… 2022-0…
+    ##  4 NVDA   Nvidia Corp  45418636               280.     276.    282.    284.    271. 1.64e12  725603 2022-0… 2022-0…
+    ##  5 NVDA   Nvidia Corp  40993851               275.     281.    272.    284.    271. 1.64e12  639610 2022-0… 2022-0…
+    ##  6 NVDA   Nvidia Corp  59461560               264.     266.    274     275.    256. 1.64e12  991811 2022-0… 2022-0…
+    ##  7 NVDA   Nvidia Corp  40408929               275.     273.    278.    281.    268. 1.64e12  572165 2022-0… 2022-0…
+    ##  8 NVDA   Nvidia Corp  38341346               281.     281.    280.    286.    276. 1.64e12  562208 2022-0… 2022-0…
+    ##  9 NVDA   Nvidia Corp  53857879               271.     284.    266.    285.    265. 1.64e12  845316 2022-0… 2022-0…
+    ## 10 NVDA   Nvidia Corp  39583233               268.     263     269.    272.    262. 1.64e12  620045 2022-0… 2022-0…
+    ## # … with 40 more rows, and abbreviated variable names ¹​open_price, ²​close_price, ³​highest_price, ⁴​lowest_price,
+    ## #   ⁵​timestamp, ⁶​num_transactions, ⁷​start_date, ⁸​end_date
 
 Here we have combined df1, df2 and df3 into vertically into a data frame
 `df_combined`. This gives us all the stock information for the 3
@@ -386,22 +384,20 @@ df_grouped %>% select(Ticker,open_price,close_price,percent_change_chr,everythin
 ```
 
     ## # A tibble: 9,084 × 12
-    ##    Ticker open_price close_p…¹ perce…² volume weigh…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
-    ##    <chr>       <dbl>     <dbl> <chr>    <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
-    ##  1 ZXZZT     10.3      20.0    93.31 % 3.93e4 13.3    20.0    10.3    1.61e12     332
-    ##  2 AIRTW      0.0261    0.0395 51.34 % 4.92e4  0.0374  0.0399  0.0261 1.61e12      19
-    ##  3 WWR        4.31      6.27   45.48 % 3.60e7  5.43    6.3     4.22   1.61e12  117274
-    ##  4 CBAT       7.9      11.3    43.04 % 1.08e8  9.22   11.4     7.15   1.61e12  463824
-    ##  5 PPSI       3.02      4.29   42.05 % 1.21e7  4.02    4.48    3.02   1.61e12   43723
-    ##  6 ITACW      0.350     0.48   37.1 %  1.63e4  0.401   0.48    0.350  1.61e12      10
-    ##  7 BLNKW      5.74      7.86   36.89 % 2.84e5  7.35    8.23    5.74   1.61e12    1493
-    ##  8 NBACW      0.51      0.66   29.41 % 5.65e5  0.587   0.680   0.51   1.61e12    1162
-    ##  9 SGOC       0.92      1.19   29.35 % 3.31e4  1.06    1.19    0.92   1.61e12      98
-    ## 10 KLR.WS     1.06      1.36   28.29 % 3.98e3  1.10    1.36    1.06   1.61e12       7
-    ## # … with 9,074 more rows, 2 more variables: date <chr>, percent_change <dbl>, and
-    ## #   abbreviated variable names ¹​close_price, ²​percent_change_chr,
-    ## #   ³​weighted_avg_price, ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp,
-    ## #   ⁷​num_transactions
+    ##    Ticker open_price close_price percent_change_chr    volume weigh…¹ highe…² lowes…³ times…⁴ num_t…⁵ date  perce…⁶
+    ##    <chr>       <dbl>       <dbl> <chr>                  <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <dbl>
+    ##  1 ZXZZT     10.3        20.0    93.31 %                39298 13.3    20.0    10.3    1.61e12     332 2020…    93.3
+    ##  2 AIRTW      0.0261      0.0395 51.34 %                49231  0.0374  0.0399  0.0261 1.61e12      19 2020…    51.3
+    ##  3 WWR        4.31        6.27   45.48 %             36001534  5.43    6.3     4.22   1.61e12  117274 2020…    45.5
+    ##  4 CBAT       7.9        11.3    43.04 %            107542895  9.22   11.4     7.15   1.61e12  463824 2020…    43.0
+    ##  5 PPSI       3.02        4.29   42.05 %             12071799  4.02    4.48    3.02   1.61e12   43723 2020…    42.0
+    ##  6 ITACW      0.350       0.48   37.1 %                 16290  0.401   0.48    0.350  1.61e12      10 2020…    37.1
+    ##  7 BLNKW      5.74        7.86   36.89 %               283685  7.35    8.23    5.74   1.61e12    1493 2020…    36.9
+    ##  8 NBACW      0.51        0.66   29.41 %               565422  0.587   0.680   0.51   1.61e12    1162 2020…    29.4
+    ##  9 SGOC       0.92        1.19   29.35 %                33103  1.06    1.19    0.92   1.61e12      98 2020…    29.4
+    ## 10 KLR.WS     1.06        1.36   28.29 %                 3978  1.10    1.36    1.06   1.61e12       7 2020…    28.3
+    ## # … with 9,074 more rows, and abbreviated variable names ¹​weighted_avg_price, ²​highest_price, ³​lowest_price,
+    ## #   ⁴​timestamp, ⁵​num_transactions, ⁶​percent_change
 
 ### Plot for new variable
 
@@ -1212,9 +1208,11 @@ ggplot(df_tables, aes(x=description)) +
 The above plot provides a good visualization of the one way contingency
 table. We can infer that number of tickers of type “Common Stock” are
 the highest with 561 and number of tickers of type “Exchange Traded
-Note” are the least with 5.
+Note” are the least with 5.  
 <!--*************************************************************************-->
-\## Scatter plot  
+
+## Scatter plot
+
 The scatter plot has been used to plot the percentage change in returns
 for the stocks Apple, Tesla and Nvidia for a date range and can be
 differentiated based on the different colours. From the plot, we can see
