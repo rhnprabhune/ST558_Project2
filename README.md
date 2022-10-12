@@ -1,26 +1,120 @@
-Project 2
+ST558- Project 2
 ================
 Rohan Prabhune, Naman Goel
-2022-10-12
 
-# Required packages list
+-   <a href="#interacting-with-apis-financial-market-data"
+    id="toc-interacting-with-apis-financial-market-data">Interacting with
+    APIs: Financial Market Data</a>
+    -   <a href="#requirements" id="toc-requirements">Requirements</a>
+    -   <a href="#api-interaction-functions"
+        id="toc-api-interaction-functions">API Interaction Functions</a>
+        -   <a href="#aggregates-bars-endpoint"
+            id="toc-aggregates-bars-endpoint"><span>Aggregates (Bars)</span>
+            Endpoint</a>
+            -   <a href="#get_stocks_agg"
+                id="toc-get_stocks_agg"><code>get_stocks_agg</code></a>
+        -   <a href="#tickers-endpoint"
+            id="toc-tickers-endpoint"><span>Tickers</span> Endpoint</a>
+            -   <a href="#get_ticker" id="toc-get_ticker"><code>get_ticker</code></a>
+            -   <a href="#get_ticker_info"
+                id="toc-get_ticker_info"><code>get_ticker_info</code></a>
+        -   <a href="#grouped-daily-bars-endpoint"
+            id="toc-grouped-daily-bars-endpoint"><span>Grouped Daily (Bars)</span>
+            Endpoint</a>
+            -   <a href="#get_grouped_daily"
+                id="toc-get_grouped_daily"><code>get_grouped_daily</code></a>
+        -   <a href="#ticker-types-endpoint"
+            id="toc-ticker-types-endpoint"><span>Ticker Types</span> Endpoint</a>
+            -   <a href="#get_ticker_type_details"
+                id="toc-get_ticker_type_details"><code>get_ticker_type_details</code></a>
+        -   <a href="#exchanges-endpoint"
+            id="toc-exchanges-endpoint"><span>Exchanges</span> Endpoint</a>
+            -   <a href="#get_exchanges_details"
+                id="toc-get_exchanges_details"><code>get_exchanges_details</code></a>
+-   <a href="#exploratory-data-analysis-eda"
+    id="toc-exploratory-data-analysis-eda">Exploratory Data Analysis
+    (EDA)</a>
+    -   <a href="#combining-data-from-api-calls"
+        id="toc-combining-data-from-api-calls">Combining data from API Calls</a>
+    -   <a href="#creation-of-new-variables"
+        id="toc-creation-of-new-variables">Creation of new variables</a>
+        -   <a href="#plot-for-new-variable" id="toc-plot-for-new-variable">Plot for
+            new variable</a>
+    -   <a href="#contingency-tables" id="toc-contingency-tables">Contingency
+        tables</a>
+        -   <a href="#one-way" id="toc-one-way">One-way</a>
+        -   <a href="#two-way" id="toc-two-way">Two-way</a>
+    -   <a href="#numerical-summaries" id="toc-numerical-summaries">Numerical
+        summaries</a>
+    -   <a href="#box-plots" id="toc-box-plots">Box plots</a>
+    -   <a href="#histogram" id="toc-histogram">Histogram</a>
+    -   <a href="#bar-plot" id="toc-bar-plot">Bar plot</a>
+    -   <a href="#scatter-plot" id="toc-scatter-plot">Scatter plot</a>
+
+# Interacting with APIs: Financial Market Data
+
+This vignette shows how to work with API. This will demonstrate how to
+fetch data from multiple API endpoints and read it in a tibble(data
+frame). This is followed by some basic exploratory data analysis (EDA)
+to produce some plots to derive insights from the data fetched.  
+The API that we have chosen for this project is [Financial Market
+Data](https://polygon.io/docs/stocks).The Polygon.io Stocks API provides
+REST endpoints that let you query the latest market data from all US
+stock exchanges.
+
+## Requirements
+
+I used the following packages in the creation of the vignette:
+
+-   `httr`: This is used to access the REST API endpoint.  
+-   `jsonlite`: This is used to parse the fetched data into a data
+    frame.  
+-   `tidyverse`: This provides two important packages `dplyr` and
+    `ggplot` which are used for data manipulation and plotting
+    respectively.  
+-   `kableExtra`: This provides better printing properties for
+    contingency tables in markdown.
+
+To get started, install(if these are not installed already) and load the
+following packages:
 
 ``` r
 library(httr)
 library(jsonlite)
 library(tidyverse)
-library(knitr)
-library(ggplot2)
 library(kableExtra)
-library(patchwork)
-library(rmarkdown)
 ```
 
 <!--*************************************************************************-->
 
-# Functions to query endpoints
+## API Interaction Functions
 
-## Endpoint 1 - Four modifications
+This section describes the functions created by us to interact with the
+API endpoints to fetch data as well as some metadata required for making
+the plots more descriptive.
+
+### [Aggregates (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to) Endpoint
+
+Get aggregate bars for a stock over a given date range in custom time
+window sizes.
+
+#### `get_stocks_agg`
+
+This function has four modifications from the user. The user can provide
+the following inputs to the functions:
+
+-   **ticker** and **company_name**: The ticker symbol and registered
+    name of the company. If the user does not have this information,
+    this can be fetched using `get_ticker` function described ahead.  
+-   **start_date**: The start of the aggregate time window (A date with
+    the format YYYY-MM-DD).  
+-   **end_date**: The end of the aggregate time window (A date with the
+    format YYYY-MM-DD).  
+-   **limit**: Limits the number of base aggregates queried to create
+    the aggregate results.
+
+This function returns a data frame with the close price, open price,
+highest price, lowest price etc for the stock over the given date range.
 
 ``` r
 get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
@@ -40,16 +134,27 @@ get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
   df <- df %>% select(ticker,company_name,everything())
   return(df)
 }
-#TODO: Convert timestamp
 ```
 
-## Endpoint 2 - Two modifications
+### [Tickers](https://polygon.io/docs/stocks/get_v3_reference_tickers) Endpoint
 
-Searches only stocks.Gives the first ticker if the name is not complete.
-Limit is 1000 and its sorted in ascending order.
+Query all ticker symbols which are supported by Polygon.io. This API
+currently includes Stocks/Equities, Crypto, and Forex.
+
+#### `get_ticker`
+
+This function searches only stocks market. The user can provide the name
+of the company the user wants the ticker information of. For example: If
+a user wants the ticker the ticker information for Apple, the user can
+call the function as `get_ticker(name="Apple")`. This function will
+return the ticker symbol **AAPL** and the registered company name
+**Apple Inc.** as a list. The user can pass on the contents of this list
+to `get_stocks_agg` function mentioned above to get the aggregate bars
+over a date range. If there are multiple matches for a given name, the
+function returns first ticker information.
 
 ``` r
-get_ticker_symbol <- function(name){
+get_ticker <- function(name){
   url=paste0("https://api.polygon.io/v3/reference/tickers?market=stocks&search=",name,"&active=true&sort=ticker&order=asc&limit=1000&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
   response_obj <- GET(url)
   parsed<- fromJSON(rawToChar(response_obj$content))
@@ -57,6 +162,14 @@ get_ticker_symbol <- function(name){
   return(list(df$ticker[[1]],df$name[[1]]))
 }
 ```
+
+#### `get_ticker_info`
+
+This function provides details of the ticker for a given market. The
+user can provide **market** value to this function. The possible values
+of market can be **stocks**, **crypto**, **fx** or **otc**. This
+function returns the primary exchange and type of ticker information for
+each ticker in each market.
 
 ``` r
 get_ticker_info <- function(market){
@@ -68,7 +181,16 @@ get_ticker_info <- function(market){
 }
 ```
 
-## Endpoint 3 - One modification
+### [Grouped Daily (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_grouped_locale_us_market_stocks__date) Endpoint
+
+Get the daily open, high, low, and close (OHLC) for the entire stocks
+markets
+
+#### `get_grouped_daily`
+
+This function takes in **date** as an input from the user and returns
+the open, high, low, and close (OHLC) for the entire stocks markets for
+that particular date.
 
 ``` r
 get_grouped_daily <- function(date="2020-10-14"){
@@ -84,7 +206,12 @@ get_grouped_daily <- function(date="2020-10-14"){
 }
 ```
 
-## Endpoint 4
+### [Ticker Types](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) Endpoint
+
+#### `get_ticker_type_details`
+
+This function is used to get get metadata information of all the ticker
+types that Polygon.io knows about.
 
 ``` r
 get_ticker_type_details <- function(){
@@ -95,7 +222,12 @@ get_ticker_type_details <- function(){
 }
 ```
 
-## Endpoint 5
+### [Exchanges](https://polygon.io/docs/stocks/get_v3_reference_exchanges) Endpoint
+
+#### `get_exchanges_details`
+
+This function is used to get metadata information of all the stock
+exchanges that Polygon.io knows about.
 
 ``` r
 get_exchanges_details <- function(){
@@ -108,118 +240,261 @@ get_exchanges_details <- function(){
 
 <!--*************************************************************************-->
 
-# Creation of relevant new variables
+# Exploratory Data Analysis (EDA)
+
+## Combining data from API Calls
+
+Here we have combined the aggregate bars for stocks of 3 companies,
+namely Apple, Tesla and Nvidia from 1 Jan 2022 to 31 August 2022.  
+To find the stock information for Apple, we have passed “Apple” as an
+input argument to `get_ticker` function. This function returns a list
+`ticker_symbol1` which consists of ticker symbol “AAPL” and name of the
+company which is “Apple Inc.”.
+
+This information along with start date and end date is passed to the
+function `get_stocks_agg`. The limit argument is not passed, so the
+function takes the default value of 50. This function fetches the stock
+information for Apple in the given date range and returns a data frame
+`df1`. Similarly, this is done to get the stocks information for Tesla
+and Nvidia in `df2` and `df3` respectively.
 
 ``` r
-df_grouped <- get_grouped_daily("2020-11-16")
-df_grouped <- df_grouped %>% mutate(percent_change = round(((close_price-open_price)/open_price)*100,2)) %>% arrange(desc(percent_change))
-df_grouped$percent_change_chr <- paste(as.character(df_grouped$percent_change),'%')
-df_grouped %>% select(Ticker,open_price,close_price,percent_change_chr,everything())
-```
-
-    ## # A tibble: 9,084 x 12
-    ##    Ticker open_price close_price percent_change_chr    volume weight~1 highe~2 lowes~3 times~4 num_t~5 date  perce~6
-    ##    <chr>       <dbl>       <dbl> <chr>                  <dbl>    <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <dbl>
-    ##  1 ZXZZT     10.3        20.0    93.31 %                39298  13.3    20.0    10.3    1.61e12     332 2020~    93.3
-    ##  2 AIRTW      0.0261      0.0395 51.34 %                49231   0.0374  0.0399  0.0261 1.61e12      19 2020~    51.3
-    ##  3 WWR        4.31        6.27   45.48 %             36001534   5.43    6.3     4.22   1.61e12  117274 2020~    45.5
-    ##  4 CBAT       7.9        11.3    43.04 %            107542895   9.22   11.4     7.15   1.61e12  463824 2020~    43.0
-    ##  5 PPSI       3.02        4.29   42.05 %             12071799   4.02    4.48    3.02   1.61e12   43723 2020~    42.0
-    ##  6 ITACW      0.350       0.48   37.1 %                 16290   0.401   0.48    0.350  1.61e12      10 2020~    37.1
-    ##  7 BLNKW      5.74        7.86   36.89 %               283685   7.35    8.23    5.74   1.61e12    1493 2020~    36.9
-    ##  8 NBACW      0.51        0.66   29.41 %               565422   0.587   0.680   0.51   1.61e12    1162 2020~    29.4
-    ##  9 SGOC       0.92        1.19   29.35 %                33103   1.06    1.19    0.92   1.61e12      98 2020~    29.4
-    ## 10 KLR.WS     1.06        1.36   28.29 %                 3978   1.10    1.36    1.06   1.61e12       7 2020~    28.3
-    ## # ... with 9,074 more rows, and abbreviated variable names 1: weighted_avg_price, 2: highest_price,
-    ## #   3: lowest_price, 4: timestamp, 5: num_transactions, 6: percent_change
-
-<!--*************************************************************************-->
-
-# Combining data from API Calls
-
-``` r
-ticker_symbol1 <- get_ticker_symbol(name="Apple")
+ticker_symbol1 <- get_ticker(name="Apple")
 df1 <- get_stocks_agg(ticker_symbol1[[1]],ticker_symbol1[[2]],start_date="2022-01-01",end_date="2022-08-31")
 df1
 ```
 
-    ## # A tibble: 50 x 12
-    ##    ticker company_name       vol weighted_avg_price open_p~1 close~2 highe~3 lowes~4 times~5 num_t~6 start~7 end_d~8
-    ##    <chr>  <chr>            <dbl>              <dbl>    <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <chr>  
-    ##  1 AAPL   Apple Inc.   104677470               181.     178.    182.    183.    178. 1.64e12  772691 2022-0~ 2022-0~
-    ##  2 AAPL   Apple Inc.    99110438               181.     183.    180.    183.    179. 1.64e12  831890 2022-0~ 2022-0~
-    ##  3 AAPL   Apple Inc.    94535602               177.     180.    175.    180.    175. 1.64e12  848513 2022-0~ 2022-0~
-    ##  4 AAPL   Apple Inc.    96882954               173.     173.    172     175.    172. 1.64e12  960340 2022-0~ 2022-0~
-    ##  5 AAPL   Apple Inc.    86709147               172.     173.    172.    174.    171. 1.64e12  716881 2022-0~ 2022-0~
-    ##  6 AAPL   Apple Inc.   106754551               170.     169.    172.    172.    168. 1.64e12  956337 2022-0~ 2022-0~
-    ##  7 AAPL   Apple Inc.    76138312               174.     172.    175.    175.    171. 1.64e12  649652 2022-0~ 2022-0~
-    ##  8 AAPL   Apple Inc.    74805173               176.     176.    176.    177.    175. 1.64e12  642756 2022-0~ 2022-0~
-    ##  9 AAPL   Apple Inc.    84405760               174.     176.    172.    177.    172. 1.64e12  692343 2022-0~ 2022-0~
-    ## 10 AAPL   Apple Inc.    80440778               172.     171.    173.    174.    171. 1.64e12  672552 2022-0~ 2022-0~
-    ## # ... with 40 more rows, and abbreviated variable names 1: open_price, 2: close_price, 3: highest_price,
-    ## #   4: lowest_price, 5: timestamp, 6: num_transactions, 7: start_date, 8: end_date
+    ## # A tibble: 50 × 12
+    ##    ticker company_name    vol weigh…¹ open_…² close…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
+    ##    <chr>  <chr>         <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
+    ##  1 AAPL   Apple Inc.   1.05e8    181.    178.    182.    183.    178. 1.64e12  772691
+    ##  2 AAPL   Apple Inc.   9.91e7    181.    183.    180.    183.    179. 1.64e12  831890
+    ##  3 AAPL   Apple Inc.   9.45e7    177.    180.    175.    180.    175. 1.64e12  848513
+    ##  4 AAPL   Apple Inc.   9.69e7    173.    173.    172     175.    172. 1.64e12  960340
+    ##  5 AAPL   Apple Inc.   8.67e7    172.    173.    172.    174.    171. 1.64e12  716881
+    ##  6 AAPL   Apple Inc.   1.07e8    170.    169.    172.    172.    168. 1.64e12  956337
+    ##  7 AAPL   Apple Inc.   7.61e7    174.    172.    175.    175.    171. 1.64e12  649652
+    ##  8 AAPL   Apple Inc.   7.48e7    176.    176.    176.    177.    175. 1.64e12  642756
+    ##  9 AAPL   Apple Inc.   8.44e7    174.    176.    172.    177.    172. 1.64e12  692343
+    ## 10 AAPL   Apple Inc.   8.04e7    172.    171.    173.    174.    171. 1.64e12  672552
+    ## # … with 40 more rows, 2 more variables: start_date <chr>, end_date <chr>, and
+    ## #   abbreviated variable names ¹​weighted_avg_price, ²​open_price, ³​close_price,
+    ## #   ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp, ⁷​num_transactions
 
 ``` r
-ticker_symbol2 <- get_ticker_symbol(name="Tesla")
+ticker_symbol2 <- get_ticker(name="Tesla")
 df2 <- get_stocks_agg(ticker_symbol2[[1]],ticker_symbol2[[2]],start_date="2022-01-01",end_date="2022-08-31")
 df2
 ```
 
-    ## # A tibble: 50 x 12
-    ##    ticker company_name                   vol weigh~1 open_~2 close~3 highe~4 lowes~5 times~6 num_t~7 start~8 end_d~9
-    ##    <chr>  <chr>                        <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <chr>  
-    ##  1 TSLA   Tesla, Inc. Common Stock 104686035    390.    383.    400.    400.    379. 1.64e12 1162844 2022-0~ 2022-0~
-    ##  2 TSLA   Tesla, Inc. Common Stock  99798258    387.    397.    383.    403.    374. 1.64e12 1051467 2022-0~ 2022-0~
-    ##  3 TSLA   Tesla, Inc. Common Stock  80119797    376.    382.    363.    390.    360. 1.64e12  811988 2022-0~ 2022-0~
-    ##  4 TSLA   Tesla, Inc. Common Stock  90324504    353.    359     355.    363.    340. 1.64e12  880974 2022-0~ 2022-0~
-    ##  5 TSLA   Tesla, Inc. Common Stock  83999748    346.    360.    342.    360.    337. 1.64e12  823560 2022-0~ 2022-0~
-    ##  6 TSLA   Tesla, Inc. Common Stock  91814877    339.    333.    353.    353.    327. 1.64e12  971558 2022-0~ 2022-0~
-    ##  7 TSLA   Tesla, Inc. Common Stock  66045210    353.    351.    355.    359.    346. 1.64e12  644108 2022-0~ 2022-0~
-    ##  8 TSLA   Tesla, Inc. Common Stock  83739015    365.    360.    369.    372.    358. 1.64e12  761538 2022-0~ 2022-0~
-    ##  9 TSLA   Tesla, Inc. Common Stock  96909162    356.    370.    344.    372.    342. 1.64e12  924351 2022-0~ 2022-0~
-    ## 10 TSLA   Tesla, Inc. Common Stock  72916011    345.    340.    350.    351.    338. 1.64e12  710334 2022-0~ 2022-0~
-    ## # ... with 40 more rows, and abbreviated variable names 1: weighted_avg_price, 2: open_price, 3: close_price,
-    ## #   4: highest_price, 5: lowest_price, 6: timestamp, 7: num_transactions, 8: start_date, 9: end_date
+    ## # A tibble: 50 × 12
+    ##    ticker company_name    vol weigh…¹ open_…² close…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
+    ##    <chr>  <chr>         <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
+    ##  1 TSLA   Tesla, Inc.… 1.05e8    390.    383.    400.    400.    379. 1.64e12 1162844
+    ##  2 TSLA   Tesla, Inc.… 9.98e7    387.    397.    383.    403.    374. 1.64e12 1051467
+    ##  3 TSLA   Tesla, Inc.… 8.01e7    376.    382.    363.    390.    360. 1.64e12  811988
+    ##  4 TSLA   Tesla, Inc.… 9.03e7    353.    359     355.    363.    340. 1.64e12  880974
+    ##  5 TSLA   Tesla, Inc.… 8.40e7    346.    360.    342.    360.    337. 1.64e12  823560
+    ##  6 TSLA   Tesla, Inc.… 9.18e7    339.    333.    353.    353.    327. 1.64e12  971558
+    ##  7 TSLA   Tesla, Inc.… 6.60e7    353.    351.    355.    359.    346. 1.64e12  644108
+    ##  8 TSLA   Tesla, Inc.… 8.37e7    365.    360.    369.    372.    358. 1.64e12  761538
+    ##  9 TSLA   Tesla, Inc.… 9.69e7    356.    370.    344.    372.    342. 1.64e12  924351
+    ## 10 TSLA   Tesla, Inc.… 7.29e7    345.    340.    350.    351.    338. 1.64e12  710334
+    ## # … with 40 more rows, 2 more variables: start_date <chr>, end_date <chr>, and
+    ## #   abbreviated variable names ¹​weighted_avg_price, ²​open_price, ³​close_price,
+    ## #   ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp, ⁷​num_transactions
 
 ``` r
-ticker_symbol3 <- get_ticker_symbol(name="Nvidia")
+ticker_symbol3 <- get_ticker(name="Nvidia")
 df3 <- get_stocks_agg(ticker_symbol3[[1]],ticker_symbol3[[2]],start_date="2022-01-01",end_date="2022-08-31")
 df3
 ```
 
-    ## # A tibble: 50 x 12
-    ##    ticker company_name      vol weighted_avg_price open_pr~1 close~2 highe~3 lowes~4 times~5 num_t~6 start~7 end_d~8
-    ##    <chr>  <chr>           <dbl>              <dbl>     <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int> <chr>   <chr>  
-    ##  1 NVDA   Nvidia Corp  39240294               302.      298.    301.    307.    298. 1.64e12  585469 2022-0~ 2022-0~
-    ##  2 NVDA   Nvidia Corp  52715440               291.      303.    293.    305.    283. 1.64e12  894297 2022-0~ 2022-0~
-    ##  3 NVDA   Nvidia Corp  49806388               283.      289.    276.    294.    275. 1.64e12  836624 2022-0~ 2022-0~
-    ##  4 NVDA   Nvidia Corp  45418636               280.      276.    282.    284.    271. 1.64e12  725603 2022-0~ 2022-0~
-    ##  5 NVDA   Nvidia Corp  40993851               275.      281.    272.    284.    271. 1.64e12  639610 2022-0~ 2022-0~
-    ##  6 NVDA   Nvidia Corp  59461560               264.      266.    274     275.    256. 1.64e12  991811 2022-0~ 2022-0~
-    ##  7 NVDA   Nvidia Corp  40408929               275.      273.    278.    281.    268. 1.64e12  572165 2022-0~ 2022-0~
-    ##  8 NVDA   Nvidia Corp  38341346               281.      281.    280.    286.    276. 1.64e12  562208 2022-0~ 2022-0~
-    ##  9 NVDA   Nvidia Corp  53857879               271.      284.    266.    285.    265. 1.64e12  845316 2022-0~ 2022-0~
-    ## 10 NVDA   Nvidia Corp  39583233               268.      263     269.    272.    262. 1.64e12  620045 2022-0~ 2022-0~
-    ## # ... with 40 more rows, and abbreviated variable names 1: open_price, 2: close_price, 3: highest_price,
-    ## #   4: lowest_price, 5: timestamp, 6: num_transactions, 7: start_date, 8: end_date
+    ## # A tibble: 50 × 12
+    ##    ticker company_name    vol weigh…¹ open_…² close…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
+    ##    <chr>  <chr>         <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
+    ##  1 NVDA   Nvidia Corp  3.92e7    302.    298.    301.    307.    298. 1.64e12  585469
+    ##  2 NVDA   Nvidia Corp  5.27e7    291.    303.    293.    305.    283. 1.64e12  894297
+    ##  3 NVDA   Nvidia Corp  4.98e7    283.    289.    276.    294.    275. 1.64e12  836624
+    ##  4 NVDA   Nvidia Corp  4.54e7    280.    276.    282.    284.    271. 1.64e12  725603
+    ##  5 NVDA   Nvidia Corp  4.10e7    275.    281.    272.    284.    271. 1.64e12  639610
+    ##  6 NVDA   Nvidia Corp  5.95e7    264.    266.    274     275.    256. 1.64e12  991811
+    ##  7 NVDA   Nvidia Corp  4.04e7    275.    273.    278.    281.    268. 1.64e12  572165
+    ##  8 NVDA   Nvidia Corp  3.83e7    281.    281.    280.    286.    276. 1.64e12  562208
+    ##  9 NVDA   Nvidia Corp  5.39e7    271.    284.    266.    285.    265. 1.64e12  845316
+    ## 10 NVDA   Nvidia Corp  3.96e7    268.    263     269.    272.    262. 1.64e12  620045
+    ## # … with 40 more rows, 2 more variables: start_date <chr>, end_date <chr>, and
+    ## #   abbreviated variable names ¹​weighted_avg_price, ²​open_price, ³​close_price,
+    ## #   ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp, ⁷​num_transactions
+
+Here we have combined df1, df2 and df3 into vertically into a data frame
+`df_combined`. This gives us all the stock information for the 3
+companies in a single data frame. This data frame is further used to
+plot the **close_price** for the 3 companies in a given date range.  
+For this the time stamp on x-axis is in Unix Msec. I tried to convert it
+into Human readable datetime format using multiple ways but I was unable
+to do it due deadline for the project. I am sure I would have gotten a
+breakthrough had I worked more on this.
 
 ``` r
 df_combined <- bind_rows(df1, df2, df3)
-ggplot(df_combined,aes(x=timestamp,y=close_price)) + geom_line(aes(color=company_name),size=1) + labs(x="Time",y="Closing price",title="Closing stock price over time for Apple, Nvidia and Tesla") +  scale_color_discrete(name = "Company Name")+theme(plot.title = element_text(hjust = 0.5))
+
+#Plot
+ggplot(df_combined,aes(x=timestamp,y=close_price)) + 
+  geom_line(aes(color=company_name),size=1) + 
+  labs(x="Time",y="Closing price",
+       title="Closing stock price over time for Apple, Nvidia and Tesla") +  
+  scale_color_discrete(name = "Company Name")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
 
 <img src="README_files/figure-gfm/4_2-1.png" style="display: block; margin: auto;" />
+From the plot we can see the stock price Tesla has dropped the most but
+it is still having higher price than Nvidia and Apple between 1 Jan 2022
+to 31 August 2022. Elon Musk’s deal with Twitter falling out can be one
+of the factor for this sink.
 
 <!--*************************************************************************-->
 
-# Contingency tables
+## Creation of new variables
+
+Here we have called `get_grouped_daily` function to get the open, high,
+low, and close (OHLC) for the entire stocks markets on 16 Nov 2020 (a
+random date which user can select).
+
+We have added a new variable **percent_change** which is the percent
+rise/decline in the stock price throughout that day (Considered
+open_price and close_price for calculating this). We have arranged the
+data frame in the descending order of percent_change, and hence at the
+top of the data frame we have tickers which have the maximum gain in
+stock price and at the bottom we have tickers which have the maximum
+loss.  
+We have also added **percent_change_chr** variable, where we have
+coerced percent_change as character which used to make the plot ahead
+more descriptive.
+
+``` r
+df_grouped <- get_grouped_daily("2020-11-16")
+df_grouped <- df_grouped %>% 
+  mutate(percent_change = round(((close_price-open_price)/open_price)*100,2)) %>% 
+  arrange(desc(percent_change))
+
+df_grouped$percent_change_chr <- paste(as.character(df_grouped$percent_change),'%')
+df_grouped %>% select(Ticker,open_price,close_price,percent_change_chr,everything())
+```
+
+    ## # A tibble: 9,084 × 12
+    ##    Ticker open_price close_p…¹ perce…² volume weigh…³ highe…⁴ lowes…⁵ times…⁶ num_t…⁷
+    ##    <chr>       <dbl>     <dbl> <chr>    <dbl>   <dbl>   <dbl>   <dbl>   <dbl>   <int>
+    ##  1 ZXZZT     10.3      20.0    93.31 % 3.93e4 13.3    20.0    10.3    1.61e12     332
+    ##  2 AIRTW      0.0261    0.0395 51.34 % 4.92e4  0.0374  0.0399  0.0261 1.61e12      19
+    ##  3 WWR        4.31      6.27   45.48 % 3.60e7  5.43    6.3     4.22   1.61e12  117274
+    ##  4 CBAT       7.9      11.3    43.04 % 1.08e8  9.22   11.4     7.15   1.61e12  463824
+    ##  5 PPSI       3.02      4.29   42.05 % 1.21e7  4.02    4.48    3.02   1.61e12   43723
+    ##  6 ITACW      0.350     0.48   37.1 %  1.63e4  0.401   0.48    0.350  1.61e12      10
+    ##  7 BLNKW      5.74      7.86   36.89 % 2.84e5  7.35    8.23    5.74   1.61e12    1493
+    ##  8 NBACW      0.51      0.66   29.41 % 5.65e5  0.587   0.680   0.51   1.61e12    1162
+    ##  9 SGOC       0.92      1.19   29.35 % 3.31e4  1.06    1.19    0.92   1.61e12      98
+    ## 10 KLR.WS     1.06      1.36   28.29 % 3.98e3  1.10    1.36    1.06   1.61e12       7
+    ## # … with 9,074 more rows, 2 more variables: date <chr>, percent_change <dbl>, and
+    ## #   abbreviated variable names ¹​close_price, ²​percent_change_chr,
+    ## #   ³​weighted_avg_price, ⁴​highest_price, ⁵​lowest_price, ⁶​timestamp,
+    ## #   ⁷​num_transactions
+
+### Plot for new variable
+
+Here we have used `head()` and `tail()` to get the stock information of
+10 tickers having the highest percent gain in `df_top10` and 10 tickers
+having the highest percent loss in `df_bottom10`. This information is
+plotted using `geom_col()`.  
+As mentioned above **percent_change_chr** is used to add text on top of
+the columns using `geom_text()`.
+
+On the x-axis we could not map the ticker symbol to the company name
+(which would have made the plot clearer) because there is a max limit of
+1000 on the [Ticker
+Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers). So
+we do not get all the data and hence there is a possibility that we have
+a ticker symbol in `df_grouped` for which we have not been able to fetch
+the company name.
+
+``` r
+#Top-10 gains
+df_top10 <- head(df_grouped, 10)
+df_top10$Ticker <- factor(df_top10$Ticker, 
+                          levels=df_top10$Ticker[order(-df_top10$percent_change)])
+
+# Plot
+date <- unique(df_top10$date)
+ggplot(df_top10, aes(x=Ticker, y=percent_change)) + 
+geom_col(width=0.3, color='steelblue', fill='steelblue') + 
+theme(axis.text.x=element_text(angle=90), text=element_text(size=12), 
+      plot.title = element_text(hjust = 0.5)) + 
+labs(y="Percent increase", x ="Stock ticker",
+     title = paste0("Highest stock price increase on ",date)) + 
+geom_text(aes(label = percent_change_chr), vjust = -0.5, size=3)
+```
+
+<img src="README_files/figure-gfm/6_1-1.png" style="display: block; margin: auto;" />
+
+``` r
+#Top-10 losses
+df_bottom10 <- tail(df_grouped, 10)
+df_bottom10$percent_change <- abs(df_bottom10$percent_change)
+df_bottom10$Ticker <- factor(df_bottom10$Ticker, 
+                             levels=df_bottom10$Ticker[order(-df_bottom10$percent_change)])
+
+# Plot
+date = unique(df_bottom10$date)
+ggplot(df_bottom10, aes(x=Ticker, y=percent_change)) + 
+geom_col(width=0.3, color='red', fill='red') + 
+theme(axis.text.x = element_text(angle=90),text = element_text(size=12),
+      plot.title = element_text(hjust = 0.5)) + 
+labs(y="Percent decrease", x ="Stock ticker", 
+     title = paste0("Highest stock price decrease on ",date)) + 
+geom_text(aes(label=percent_change_chr), vjust =-0.5, size=3)
+```
+
+<img src="README_files/figure-gfm/6_1-2.png" style="display: block; margin: auto;" />
+
+From the plot above we can see that on 16th Nov 2020, the stock price
+for ZXZZT(NASDAQ TEST STOCK) noticed maximum gain of 93.91%. After that,
+the highest gain was noticed by AIRTW (Air T, Inc.) which was 51.34% and
+WWR(Westwater Resources, Inc.) which was 45.48%.  
+On similar lines, the stock price for KTOVW(Kitov Pharma Ltd. Warrants)
+noticed highest loss of 43.93%. Thus this plot allows the user to find
+out the biggest gainers and losers on any given day.
+
+<!--*************************************************************************-->
+
+## Contingency tables
+
+Here we have used `get_ticker_info` function to get ticker information
+such as its type and its primary exchange for all the tickers supported
+by Polygon.io. in the **stock** market. Hence the input argument to the
+function call is “stocks”.
+
+### One-way
+
+Here we have created a contingency table using ticker type information
+for the stock market. When fetching data from the [Ticker
+Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers) in
+`df_info`, we get the abbrevations of ticker types. In order to fetch
+the descriptions of ticker type (For example: **CS** means **Common
+Stocks**) we have fetched data from the [Ticker Types
+Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers_types)
+in `df_tickertype_metadata`. Then we took the `left_join` of the two
+tibbles in order to get all the information in a single tibble which is
+then used to create the contingency table.
 
 ``` r
 df_info <- get_ticker_info("stocks")
+Sys.sleep(5)
+df_tickertype_metadata <- get_ticker_type_details() %>% select(code,description)
+Sys.sleep(5)
+df_tables <- left_join(df_info,df_tickertype_metadata,by=c("type"="code"))
 
-tab1 <- table(df_info$type,dnn=c("Ticker Types"))
-tab2 <- table(df_info$type,df_info$primary_exchange,dnn=c("Ticker Types","Exchanges"))
-
+tab1 <- table(df_tables$description,dnn=c("Ticker Types"))
 tab1 %>%
   kbl(caption="Table for Ticker Types") %>%
   kable_classic(full_width = F)
@@ -242,7 +517,7 @@ Freq
 <tbody>
 <tr>
 <td style="text-align:left;">
-ADRC
+American Depository Receipt Common
 </td>
 <td style="text-align:right;">
 40
@@ -250,7 +525,7 @@ ADRC
 </tr>
 <tr>
 <td style="text-align:left;">
-CS
+Common Stock
 </td>
 <td style="text-align:right;">
 561
@@ -258,7 +533,7 @@ CS
 </tr>
 <tr>
 <td style="text-align:left;">
-ETF
+Exchange Traded Fund
 </td>
 <td style="text-align:right;">
 110
@@ -266,7 +541,7 @@ ETF
 </tr>
 <tr>
 <td style="text-align:left;">
-ETN
+Exchange Traded Note
 </td>
 <td style="text-align:right;">
 5
@@ -274,15 +549,7 @@ ETN
 </tr>
 <tr>
 <td style="text-align:left;">
-ETV
-</td>
-<td style="text-align:right;">
-1
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-FUND
+Fund
 </td>
 <td style="text-align:right;">
 15
@@ -290,7 +557,7 @@ FUND
 </tr>
 <tr>
 <td style="text-align:left;">
-PFD
+Preferred Stock
 </td>
 <td style="text-align:right;">
 56
@@ -298,7 +565,7 @@ PFD
 </tr>
 <tr>
 <td style="text-align:left;">
-RIGHT
+Rights
 </td>
 <td style="text-align:right;">
 9
@@ -306,7 +573,7 @@ RIGHT
 </tr>
 <tr>
 <td style="text-align:left;">
-SP
+Structured Product
 </td>
 <td style="text-align:right;">
 16
@@ -314,7 +581,7 @@ SP
 </tr>
 <tr>
 <td style="text-align:left;">
-UNIT
+Unit
 </td>
 <td style="text-align:right;">
 72
@@ -322,7 +589,7 @@ UNIT
 </tr>
 <tr>
 <td style="text-align:left;">
-WARRANT
+Warrant
 </td>
 <td style="text-align:right;">
 106
@@ -331,7 +598,25 @@ WARRANT
 </tbody>
 </table>
 
+From the table we can see that the number of CS (Common Stock) is 561
+and the number of ARDC (American Depository Receipt Common) is 40.
+
+### Two-way
+
+Similarly here we have created a two way contingency table for the
+number of ticker types for each stock exchange. When fetching data from
+the [Ticker
+Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers) in
+`df_info`, we get the abbrevations stock exchanges. Here we tried to use
+[Exchange
+Endpoint](https://polygon.io/docs/stocks/get_v3_reference_exchanges) to
+get the full name of the stock exchanges (For example: **XNYS** is
+**NYSE American, LLC**) but there we multiple exchange information for
+each exchange which made the table very complicated to understand. For
+that reason we let the exchange abbrevations be.
+
 ``` r
+tab2 <- table(df_tables$description,df_info$primary_exchange,dnn=c("Ticker Types","Exchanges"))
 tab2 %>%
   kbl(caption="Table for Ticker Types and Exchanges") %>%
   kable_classic(full_width = F)
@@ -365,7 +650,7 @@ XNYS
 <tbody>
 <tr>
 <td style="text-align:left;">
-ADRC
+American Depository Receipt Common
 </td>
 <td style="text-align:right;">
 0
@@ -385,7 +670,7 @@ ADRC
 </tr>
 <tr>
 <td style="text-align:left;">
-CS
+Common Stock
 </td>
 <td style="text-align:right;">
 0
@@ -405,7 +690,7 @@ CS
 </tr>
 <tr>
 <td style="text-align:left;">
-ETF
+Exchange Traded Fund
 </td>
 <td style="text-align:right;">
 71
@@ -425,7 +710,7 @@ ETF
 </tr>
 <tr>
 <td style="text-align:left;">
-ETN
+Exchange Traded Note
 </td>
 <td style="text-align:right;">
 5
@@ -445,27 +730,7 @@ ETN
 </tr>
 <tr>
 <td style="text-align:left;">
-ETV
-</td>
-<td style="text-align:right;">
-1
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-<td style="text-align:right;">
-0
-</td>
-</tr>
-<tr>
-<td style="text-align:left;">
-FUND
+Fund
 </td>
 <td style="text-align:right;">
 0
@@ -485,7 +750,7 @@ FUND
 </tr>
 <tr>
 <td style="text-align:left;">
-PFD
+Preferred Stock
 </td>
 <td style="text-align:right;">
 0
@@ -505,7 +770,7 @@ PFD
 </tr>
 <tr>
 <td style="text-align:left;">
-RIGHT
+Rights
 </td>
 <td style="text-align:right;">
 0
@@ -525,7 +790,7 @@ RIGHT
 </tr>
 <tr>
 <td style="text-align:left;">
-SP
+Structured Product
 </td>
 <td style="text-align:right;">
 0
@@ -545,7 +810,7 @@ SP
 </tr>
 <tr>
 <td style="text-align:left;">
-UNIT
+Unit
 </td>
 <td style="text-align:right;">
 0
@@ -565,7 +830,7 @@ UNIT
 </tr>
 <tr>
 <td style="text-align:left;">
-WARRANT
+Warrant
 </td>
 <td style="text-align:right;">
 0
@@ -585,9 +850,15 @@ WARRANT
 </tr>
 </tbody>
 </table>
+
+From the table above we can see that there are 359 **Common Stock** type
+tickers in the **XNYS** (New York stock exchange). And similarly this
+table helps us to identify the total number of each ticker type in each
+exchange.
+
 <!--*************************************************************************-->
 
-# Numerical summaries
+## Numerical summaries
 
 ``` r
 df_combined <- bind_rows(df1, df2, df3)
@@ -628,7 +899,7 @@ Summary Statistics for Open Price per Company between 2022-01-01 and
 <thead>
 <tr>
 <th style="text-align:left;">
-company\_name
+company_name
 </th>
 <th style="text-align:right;">
 Min.
@@ -749,7 +1020,7 @@ Summary Statistics for Close Price per Company between 2022-01-01 and
 <thead>
 <tr>
 <th style="text-align:left;">
-company\_name
+company_name
 </th>
 <th style="text-align:right;">
 Min.
@@ -857,56 +1128,25 @@ Tesla, Inc. Common Stock
 </table>
 <!--*************************************************************************-->
 
-# Plots
-
-Did not map the ticker symbol to the company name because there is a max
-limit of 1000 on the “Ticker” reference end point. So we do not get all
-the data.
-
-## Plotting new created variable
-
-``` r
-#Top-10 increases
-df_top10 <- head(df_grouped, 10)
-df_top10$Ticker <- factor(df_top10$Ticker, levels=df_top10$Ticker[order(-df_top10$percent_change)])
-
-# Plot
-date <- unique(df_top10$date)
-ggplot(df_top10, aes(x=Ticker, y=percent_change)) + 
-geom_col(width=0.3, color='steelblue', fill='steelblue') + 
-theme(axis.text.x=element_text(angle=90), text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + labs(y="Percent increase", x ="Stock ticker",title = paste0("Highest stock price increase on ",date)) + geom_text(aes(label = percent_change_chr), vjust = -0.5, size=3)
-```
-
-<img src="README_files/figure-gfm/6_1-1.png" style="display: block; margin: auto;" />
-
-``` r
-#Top-10 decreases
-df_bottom10 <- tail(df_grouped, 10)
-df_bottom10$percent_change <- abs(df_bottom10$percent_change)
-df_bottom10$Ticker <- factor(df_bottom10$Ticker, levels=df_bottom10$Ticker[order(-df_bottom10$percent_change)])
-
-# Plot
-date = unique(df_bottom10$date)
-ggplot(df_bottom10, aes(x=Ticker, y=percent_change)) + 
-geom_col(width=0.3, color='red', fill='red') + 
-theme(axis.text.x = element_text(angle=90),text = element_text(size=12),plot.title = element_text(hjust = 0.5)) + labs(y="Percent decrease", x ="Stock ticker", title = paste0("Highest stock price decrease on ",date)) + geom_text(aes(label=percent_change_chr), vjust =-0.5, size=3)
-```
-
-<img src="README_files/figure-gfm/6_1-2.png" style="display: block; margin: auto;" />
-
-## Box plots for highest and lowest price per company in a given time period
+## Box plots
 
 ``` r
 start_date = as.character(unique(df_combined$start_date))
 end_date = as.character(unique(df_combined$end_date))
 
-ggplot(df_combined, aes(x=company_name, y=highest_price)) + geom_boxplot(color="blue",fill="grey") + labs(y="Highest price", x ="Company Name", title=paste0("Boxplot for highest stock price between ",start_date," and ",end_date)) 
+ggplot(df_combined, aes(x=company_name, y=highest_price)) + 
+  geom_boxplot(color="blue",fill="grey") + 
+  labs(y="Highest price", x ="Company Name", 
+       title=paste0("Boxplot for highest stock price between ",start_date," and ",end_date)) 
 ```
 
 <img src="README_files/figure-gfm/6_2-1.png" style="display: block; margin: auto;" />
 
 ``` r
-ggplot(df_combined, aes(x=company_name, y=lowest_price)) + geom_boxplot(color="red",fill="grey") + labs(y="Lowest price", x ="Company Name", title=paste0("Boxplot for lowest stock price between ",start_date," and ",end_date)) 
+ggplot(df_combined, aes(x=company_name, y=lowest_price)) + 
+  geom_boxplot(color="red",fill="grey") + 
+  labs(y="Lowest price", x ="Company Name", 
+       title=paste0("Boxplot for lowest stock price between ",start_date," and ",end_date)) 
 ```
 
 <img src="README_files/figure-gfm/6_2-2.png" style="display: block; margin: auto;" />
@@ -914,11 +1154,20 @@ ggplot(df_combined, aes(x=company_name, y=lowest_price)) + geom_boxplot(color="r
 ## Histogram
 
 ``` r
+wrapper <- function(x, ...) 
+{
+  paste(strwrap(x, ...), collapse = "\n")
+}
 start_date = as.character(unique(df_combined$start_date))
 end_date = as.character(unique(df_combined$end_date))
 
 my_title <- paste0("Histogram of weighted average price per company between ",start_date," and ",end_date)
-ggplot(df_combined, aes(x=weighted_avg_price)) + geom_histogram(aes(fill=company_name),binwidth=8) + labs(x ="Weighted average price") + scale_fill_discrete(name = "Company Name") + ggtitle(wrapper(my_title, width=80))
+
+ggplot(df_combined, aes(x=weighted_avg_price)) + 
+  geom_histogram(aes(fill=company_name),binwidth=8) + 
+  labs(x ="Weighted average price") + 
+  scale_fill_discrete(name = "Company Name") + 
+  ggtitle(wrapper(my_title, width=80))
 ```
 
 <img src="README_files/figure-gfm/6_3-1.png" style="display: block; margin: auto;" />
@@ -926,7 +1175,12 @@ ggplot(df_combined, aes(x=weighted_avg_price)) + geom_histogram(aes(fill=company
 ## Bar plot
 
 ``` r
-ggplot(df_info, aes(x=type)) + geom_bar(fill="steelblue") + labs(x ="Type of tickers",title="Bar plot for number of stock tickers for each type") + theme(text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
+ggplot(df_info, aes(x=type)) + 
+  geom_bar(fill="steelblue") + 
+  labs(x ="Type of tickers",
+       title="Bar plot for number of stock tickers for each type") + 
+  theme(text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + 
+  geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
 ```
 
 <img src="README_files/figure-gfm/6_4-1.png" style="display: block; margin: auto;" />

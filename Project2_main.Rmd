@@ -1,32 +1,50 @@
 ---
-title: "Project 2"
+title: "ST558- Project 2"
 author: "Rohan Prabhune, Naman Goel"
-date: "`r Sys.Date()`"
-output: github_document
+output: 
+  github_document:
+    toc: true
+    toc_depth: 4
 always_allow_html: true
 ---
-```{r Temp2,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
-wrapper <- function(x, ...) 
-{
-  paste(strwrap(x, ...), collapse = "\n")
-}
-#knitr::opts_chunk$set(fig.width=8, fig.height=7) 
+```{r Temp1,echo=FALSE,eval=TRUE,message=FALSE,warning=FALSE}
 knitr::opts_chunk$set(fig.align = 'center') 
 ```
-# Required packages list
+# Interacting with APIs: Financial Market Data
+This vignette shows how to work with API. This will demonstrate how to fetch data from multiple API endpoints and read it in a tibble(data frame). This is followed by some basic exploratory data analysis (EDA) to produce some plots to derive insights from the data fetched.  
+The API that we have chosen for this project is [Financial Market Data](https://polygon.io/docs/stocks).The Polygon.io Stocks API provides REST endpoints that let you query the latest market data from all US stock exchanges. 
+
+## Requirements
+I used the following packages in the creation of the vignette:
+
+* `httr`: This is used to access the REST API endpoint.  
+* `jsonlite`: This is used to parse the fetched data into a data frame.  
+* `tidyverse`: This provides two important packages `dplyr` and `ggplot` which are used for data manipulation and plotting respectively.  
+* `kableExtra`: This provides better printing properties for contingency tables in markdown.  
+
+To get started, install(if these are not installed already) and load the following packages:
 ```{r 1_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 library(httr)
 library(jsonlite)
 library(tidyverse)
-library(knitr)
-library(ggplot2)
 library(kableExtra)
-library(patchwork)
-library(rmarkdown)
 ```
 <!--*************************************************************************-->
-# Functions to query endpoints
-## Endpoint 1 - Four modifications
+## API Interaction Functions  
+This section describes the functions created by us to interact with the API endpoints to fetch data as well as some metadata required for making the plots more descriptive.  
+
+### [Aggregates (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to) Endpoint  
+Get aggregate bars for a stock over a given date range in custom time window sizes.  
+
+#### `get_stocks_agg`
+This function has four modifications from the user. The user can provide the following inputs to the functions:  
+
+* **ticker** and **company_name**: The ticker symbol and registered name of the company. If the user does not have this information, this can be fetched using `get_ticker` function described ahead.  
+* **start_date**: The start of the aggregate time window (A date with the format YYYY-MM-DD).  
+* **end_date**: The end of the aggregate time window (A date with the format YYYY-MM-DD).  
+* **limit**: Limits the number of base aggregates queried to create the aggregate results.  
+
+This function returns a data frame with the close price, open price, highest price, lowest price etc for the stock over the given date range.  
 ```{r 2_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
                            end_date="2022-08-31",limit=50){
@@ -45,13 +63,15 @@ get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
   df <- df %>% select(ticker,company_name,everything())
   return(df)
 }
-#TODO: Convert timestamp
 ```
 
-## Endpoint 2 - Two modifications
-Searches only stocks.Gives the first ticker if the name is not complete. Limit is 1000 and its sorted in ascending order.
+### [Tickers](https://polygon.io/docs/stocks/get_v3_reference_tickers) Endpoint  
+Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Crypto, and Forex.  
+
+#### `get_ticker`
+This function searches only stocks market. The user can provide the name of the company the user wants the ticker information of. For example: If a user wants the ticker the ticker information for Apple, the user can call the function as `get_ticker(name="Apple")`. This function will return the ticker symbol **AAPL** and the registered company name **Apple Inc.** as a list. The user can pass on the contents of this list to `get_stocks_agg` function mentioned above to get the aggregate bars over a date range. If there are multiple matches for a given name, the function returns first ticker information.  
 ```{r 2_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
-get_ticker_symbol <- function(name){
+get_ticker <- function(name){
   url=paste0("https://api.polygon.io/v3/reference/tickers?market=stocks&search=",name,"&active=true&sort=ticker&order=asc&limit=1000&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
   response_obj <- GET(url)
   parsed<- fromJSON(rawToChar(response_obj$content))
@@ -60,6 +80,8 @@ get_ticker_symbol <- function(name){
 }
 ```
 
+#### `get_ticker_info`  
+This function provides details of the ticker for a given market. The user can provide **market** value to this function. The possible values of market can be **stocks**, **crypto**, **fx** or **otc**. This function returns the primary exchange and type of ticker information for each ticker in each market.  
 ```{r 2_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_ticker_info <- function(market){
   url=paste0("https://api.polygon.io/v3/reference/tickers?market=",market,"&active=true&sort=ticker&order=asc&limit=1000&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -70,7 +92,11 @@ get_ticker_info <- function(market){
 }
 ```
 
-## Endpoint 3 - One modification
+### [Grouped Daily (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_grouped_locale_us_market_stocks__date) Endpoint  
+Get the daily open, high, low, and close (OHLC) for the entire stocks markets
+
+#### `get_grouped_daily`
+This function takes in **date** as an input from the user and returns the open, high, low, and close (OHLC) for the entire stocks markets for that particular date.  
 ```{r 2_4,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_grouped_daily <- function(date="2020-10-14"){
   url=paste0("https://api.polygon.io/v2/aggs/grouped/locale/us/market/stocks/",date,"?adjusted=true&include_otc=true&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -85,7 +111,10 @@ get_grouped_daily <- function(date="2020-10-14"){
 }
 ```
 
-## Endpoint 4 
+### [Ticker Types](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) Endpoint  
+
+#### `get_ticker_type_details`
+This function is used to get get metadata information of all the ticker types that Polygon.io knows about.  
 ```{r 2_5,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_ticker_type_details <- function(){
   response_obj <- GET("https://api.polygon.io/v3/reference/tickers/types?apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -95,7 +124,10 @@ get_ticker_type_details <- function(){
 }
 ```
 
-## Endpoint 5 
+### [Exchanges](https://polygon.io/docs/stocks/get_v3_reference_exchanges) Endpoint  
+
+#### `get_exchanges_details`
+This function is used to get metadata information of all the stock exchanges that Polygon.io knows about.
 ```{r 2_6,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 get_exchanges_details <- function(){
   response_obj <- GET("https://api.polygon.io/v3/reference/exchanges?asset_class=stocks&apiKey=EdkA7_m2JhjS5POrGuXJbVlA4AjSl_4F")
@@ -105,53 +137,132 @@ get_exchanges_details <- function(){
 }
 ```
 <!--*************************************************************************-->
-# Creation of relevant new variables
-```{r 3_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
-df_grouped <- get_grouped_daily("2020-11-16")
-df_grouped <- df_grouped %>% mutate(percent_change = round(((close_price-open_price)/open_price)*100,2)) %>% arrange(desc(percent_change))
-df_grouped$percent_change_chr <- paste(as.character(df_grouped$percent_change),'%')
-df_grouped %>% select(Ticker,open_price,close_price,percent_change_chr,everything())
-```
+# Exploratory Data Analysis (EDA)
+## Combining data from API Calls
+Here we have combined the aggregate bars for stocks of 3 companies, namely Apple, Tesla and Nvidia from 1 Jan 2022 to 31 August 2022.  
+To find the stock information for Apple, we have passed "Apple" as an input argument to `get_ticker` function. This function returns a list `ticker_symbol1` which consists of ticker symbol "AAPL" and name of the company which is "Apple Inc.".  
 
-<!--*************************************************************************-->
-# Combining data from API Calls
+This information along with start date and end date is passed to the function `get_stocks_agg`. The limit argument is not passed, so the function takes the default value of 50. This function fetches the stock information for Apple in the given date range and returns a data frame `df1`. Similarly, this is done to get the stocks information for Tesla and Nvidia in `df2` and `df3` respectively.  
 ```{r 4_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
-ticker_symbol1 <- get_ticker_symbol(name="Apple")
+ticker_symbol1 <- get_ticker(name="Apple")
 df1 <- get_stocks_agg(ticker_symbol1[[1]],ticker_symbol1[[2]],start_date="2022-01-01",end_date="2022-08-31")
 df1
 
-ticker_symbol2 <- get_ticker_symbol(name="Tesla")
+ticker_symbol2 <- get_ticker(name="Tesla")
 df2 <- get_stocks_agg(ticker_symbol2[[1]],ticker_symbol2[[2]],start_date="2022-01-01",end_date="2022-08-31")
 df2
 
-ticker_symbol3 <- get_ticker_symbol(name="Nvidia")
+ticker_symbol3 <- get_ticker(name="Nvidia")
 df3 <- get_stocks_agg(ticker_symbol3[[1]],ticker_symbol3[[2]],start_date="2022-01-01",end_date="2022-08-31")
 df3
 ```
 
-```{r 4_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+Here we have combined df1, df2 and df3 into vertically into a data frame `df_combined`. This gives us all the stock information for the 3 companies in a single data frame. This data frame is further used to plot the **close_price** for the 3 companies in a given date range.   
+For this the time stamp on x-axis is in Unix Msec. I tried to convert it into Human readable datetime format using multiple ways but I was unable to do it due deadline for the project. I am sure I would have gotten a breakthrough had I worked more on this.
+```{r 4_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE,fig.width = 10}
 df_combined <- bind_rows(df1, df2, df3)
-ggplot(df_combined,aes(x=timestamp,y=close_price)) + geom_line(aes(color=company_name),size=1) + labs(x="Time",y="Closing price",title="Closing stock price over time for Apple, Nvidia and Tesla") +  scale_color_discrete(name = "Company Name")+theme(plot.title = element_text(hjust = 0.5))
+
+#Plot
+ggplot(df_combined,aes(x=timestamp,y=close_price)) + 
+  geom_line(aes(color=company_name),size=1) + 
+  labs(x="Time",y="Closing price",
+       title="Closing stock price over time for Apple, Nvidia and Tesla") +  
+  scale_color_discrete(name = "Company Name")+
+  theme(plot.title = element_text(hjust = 0.5))
 ```
+From the plot we can see the stock price Tesla has dropped the most but it is still having higher price than Nvidia and Apple between 1 Jan 2022 to 31 August 2022. Elon Musk's deal with Twitter falling out can be one of the factor for this sink. 
 
 <!--*************************************************************************-->
-# Contingency tables
+## Creation of new variables
+Here we have called `get_grouped_daily` function to get the open, high, low, and close (OHLC) for the entire stocks markets on 16 Nov 2020 (a random date which user can select).  
+
+We have added a new variable **percent_change** which is the percent rise/decline in the stock price throughout that day (Considered open_price and close_price for calculating this). We have arranged the data frame in the descending order of percent_change, and hence at the top of the data frame we have tickers which have the maximum gain in stock price and at the bottom we have tickers which have the maximum loss.  
+We have also added **percent_change_chr** variable, where we have coerced percent_change as character which used to make the plot ahead more descriptive.  
+```{r 3_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+df_grouped <- get_grouped_daily("2020-11-16")
+df_grouped <- df_grouped %>% 
+  mutate(percent_change = round(((close_price-open_price)/open_price)*100,2)) %>% 
+  arrange(desc(percent_change))
+
+df_grouped$percent_change_chr <- paste(as.character(df_grouped$percent_change),'%')
+df_grouped %>% select(Ticker,open_price,close_price,percent_change_chr,everything())
+```
+
+### Plot for new variable
+
+Here we have used `head()` and `tail()` to get the stock information of 10 tickers having the highest percent gain in `df_top10` and 10 tickers having the highest percent loss in `df_bottom10`. This information is plotted using `geom_col()`.  
+As mentioned above **percent_change_chr** is used to add text on top of the columns using `geom_text()`.  
+
+On the x-axis we could not map the ticker symbol to the company name (which would have made the plot clearer) because there is a max limit of 1000 on the [Ticker Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers). So we do not get all the data and hence there is a possibility that we have a ticker symbol in `df_grouped` for which we have not been able to fetch the company name.  
+```{r 6_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE,fig.width = 10}
+#Top-10 gains
+df_top10 <- head(df_grouped, 10)
+df_top10$Ticker <- factor(df_top10$Ticker, 
+                          levels=df_top10$Ticker[order(-df_top10$percent_change)])
+
+# Plot
+date <- unique(df_top10$date)
+ggplot(df_top10, aes(x=Ticker, y=percent_change)) + 
+geom_col(width=0.3, color='steelblue', fill='steelblue') + 
+theme(axis.text.x=element_text(angle=90), text=element_text(size=12), 
+      plot.title = element_text(hjust = 0.5)) + 
+labs(y="Percent increase", x ="Stock ticker",
+     title = paste0("Highest stock price increase on ",date)) + 
+geom_text(aes(label = percent_change_chr), vjust = -0.5, size=3)
+
+#Top-10 losses
+df_bottom10 <- tail(df_grouped, 10)
+df_bottom10$percent_change <- abs(df_bottom10$percent_change)
+df_bottom10$Ticker <- factor(df_bottom10$Ticker, 
+                             levels=df_bottom10$Ticker[order(-df_bottom10$percent_change)])
+
+# Plot
+date = unique(df_bottom10$date)
+ggplot(df_bottom10, aes(x=Ticker, y=percent_change)) + 
+geom_col(width=0.3, color='red', fill='red') + 
+theme(axis.text.x = element_text(angle=90),text = element_text(size=12),
+      plot.title = element_text(hjust = 0.5)) + 
+labs(y="Percent decrease", x ="Stock ticker", 
+     title = paste0("Highest stock price decrease on ",date)) + 
+geom_text(aes(label=percent_change_chr), vjust =-0.5, size=3)
+```
+
+From the plot above we can see that on 16th Nov 2020, the stock price for ZXZZT(NASDAQ TEST STOCK) noticed maximum gain of 93.91%. After that, the highest gain was noticed by AIRTW (Air T, Inc.) which was 51.34% and WWR(Westwater Resources, Inc.) which was 45.48%.  
+On similar lines, the stock price for KTOVW(Kitov Pharma Ltd. Warrants) noticed highest loss of 43.93%. 
+Thus this plot allows the user to find out the biggest gainers and losers on any given day.
+
+<!--*************************************************************************-->
+## Contingency tables
+Here we have used `get_ticker_info` function to get ticker information such as its type and its primary exchange for all the tickers supported by Polygon.io. in the **stock** market. Hence the input argument to the function call is "stocks". 
+
+### One-way  
+Here we have created a contingency table using ticker type information for the stock market. When fetching data from the [Ticker Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers) in `df_info`, we get the abbrevations of ticker types. In order to fetch the descriptions of ticker type (For example: **CS** means **Common Stocks**) we have fetched data from the [Ticker Types Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) in `df_tickertype_metadata`. Then we took the `left_join` of the two tibbles in order to get all the information in a single tibble which is then used to create the contingency table.  
 ```{r 4_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 df_info <- get_ticker_info("stocks")
+Sys.sleep(5)
+df_tickertype_metadata <- get_ticker_type_details() %>% select(code,description)
+Sys.sleep(5)
+df_tables <- left_join(df_info,df_tickertype_metadata,by=c("type"="code"))
 
-tab1 <- table(df_info$type,dnn=c("Ticker Types"))
-tab2 <- table(df_info$type,df_info$primary_exchange,dnn=c("Ticker Types","Exchanges"))
-
+tab1 <- table(df_tables$description,dnn=c("Ticker Types"))
 tab1 %>%
   kbl(caption="Table for Ticker Types") %>%
   kable_classic(full_width = F)
+```
+From the table we can see that the number of CS (Common Stock) is 561 and the number of ARDC (American Depository Receipt Common) is 40. 
+
+### Two-way
+Similarly here we have created a two way contingency table for the number of ticker types for each stock exchange. When fetching data from the [Ticker Endpoint](https://polygon.io/docs/stocks/get_v3_reference_tickers) in `df_info`, we get the abbrevations stock exchanges. Here we tried to use [Exchange Endpoint](https://polygon.io/docs/stocks/get_v3_reference_exchanges) to get the full name of the stock exchanges (For example: **XNYS** is **NYSE American, LLC**) but there we multiple exchange information for each exchange which made the table very complicated to understand. For that reason we let the exchange abbrevations be.
+```{r 4_4,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+tab2 <- table(df_tables$description,df_info$primary_exchange,dnn=c("Ticker Types","Exchanges"))
 tab2 %>%
   kbl(caption="Table for Ticker Types and Exchanges") %>%
   kable_classic(full_width = F)
 ```
+From the table above we can see that there are 359 **Common Stock** type tickers in the **XNYS** (New York stock exchange). And similarly this table helps us to identify the total number of each ticker type in each exchange.
 
 <!--*************************************************************************-->
-# Numerical summaries
+## Numerical summaries
 ```{r 5_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 df_combined <- bind_rows(df1, df2, df3)
 start_date = as.character(unique(df_combined$start_date))
@@ -188,60 +299,56 @@ df_combined_close %>%
 ```
 
 <!--*************************************************************************-->
-# Plots
-Did not map the ticker symbol to the company name because there is a max limit of 1000 on the "Ticker" reference end point. So we do not get all the data.
-
-## Plotting new created variable
-```{r 6_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
-#Top-10 increases
-df_top10 <- head(df_grouped, 10)
-df_top10$Ticker <- factor(df_top10$Ticker, levels=df_top10$Ticker[order(-df_top10$percent_change)])
-
-# Plot
-date <- unique(df_top10$date)
-ggplot(df_top10, aes(x=Ticker, y=percent_change)) + 
-geom_col(width=0.3, color='steelblue', fill='steelblue') + 
-theme(axis.text.x=element_text(angle=90), text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + labs(y="Percent increase", x ="Stock ticker",title = paste0("Highest stock price increase on ",date)) + geom_text(aes(label = percent_change_chr), vjust = -0.5, size=3)
-
-#Top-10 decreases
-df_bottom10 <- tail(df_grouped, 10)
-df_bottom10$percent_change <- abs(df_bottom10$percent_change)
-df_bottom10$Ticker <- factor(df_bottom10$Ticker, levels=df_bottom10$Ticker[order(-df_bottom10$percent_change)])
-
-# Plot
-date = unique(df_bottom10$date)
-ggplot(df_bottom10, aes(x=Ticker, y=percent_change)) + 
-geom_col(width=0.3, color='red', fill='red') + 
-theme(axis.text.x = element_text(angle=90),text = element_text(size=12),plot.title = element_text(hjust = 0.5)) + labs(y="Percent decrease", x ="Stock ticker", title = paste0("Highest stock price decrease on ",date)) + geom_text(aes(label=percent_change_chr), vjust =-0.5, size=3)
-```
-
-## Box plots for highest and lowest price per company in a given time period
+## Box plots
 ```{r 6_2,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 start_date = as.character(unique(df_combined$start_date))
 end_date = as.character(unique(df_combined$end_date))
 
-ggplot(df_combined, aes(x=company_name, y=highest_price)) + geom_boxplot(color="blue",fill="grey") + labs(y="Highest price", x ="Company Name", title=paste0("Boxplot for highest stock price between ",start_date," and ",end_date)) 
+ggplot(df_combined, aes(x=company_name, y=highest_price)) + 
+  geom_boxplot(color="blue",fill="grey") + 
+  labs(y="Highest price", x ="Company Name", 
+       title=paste0("Boxplot for highest stock price between ",start_date," and ",end_date)) 
 
-ggplot(df_combined, aes(x=company_name, y=lowest_price)) + geom_boxplot(color="red",fill="grey") + labs(y="Lowest price", x ="Company Name", title=paste0("Boxplot for lowest stock price between ",start_date," and ",end_date)) 
+ggplot(df_combined, aes(x=company_name, y=lowest_price)) + 
+  geom_boxplot(color="red",fill="grey") + 
+  labs(y="Lowest price", x ="Company Name", 
+       title=paste0("Boxplot for lowest stock price between ",start_date," and ",end_date)) 
 ```
 
 ## Histogram 
-```{r 6_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
+```{r 6_3,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE,fig.width = 10}
+wrapper <- function(x, ...) 
+{
+  paste(strwrap(x, ...), collapse = "\n")
+}
 start_date = as.character(unique(df_combined$start_date))
 end_date = as.character(unique(df_combined$end_date))
 
 my_title <- paste0("Histogram of weighted average price per company between ",start_date," and ",end_date)
-ggplot(df_combined, aes(x=weighted_avg_price)) + geom_histogram(aes(fill=company_name),binwidth=8) + labs(x ="Weighted average price") + scale_fill_discrete(name = "Company Name") + ggtitle(wrapper(my_title, width=80))
+
+ggplot(df_combined, aes(x=weighted_avg_price)) + 
+  geom_histogram(aes(fill=company_name),binwidth=8) + 
+  labs(x ="Weighted average price") + 
+  scale_fill_discrete(name = "Company Name") + 
+  ggtitle(wrapper(my_title, width=80))
 ```
 
 ## Bar plot 
 ```{r 6_4,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
-ggplot(df_info, aes(x=type)) + geom_bar(fill="steelblue") + labs(x ="Type of tickers",title="Bar plot for number of stock tickers for each type") + theme(text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
+ggplot(df_info, aes(x=type)) + 
+  geom_bar(fill="steelblue") + 
+  labs(x ="Type of tickers",
+       title="Bar plot for number of stock tickers for each type") + 
+  theme(text=element_text(size=12), plot.title = element_text(hjust = 0.5)) + 
+  geom_text(aes(label = ..count..), stat = "count", vjust = -0.5)
 ```
 
 ## Scatter plot  
 The scatter plot has been used to plot the percentage change in returns for the stocks Apple, Tesla and Nvidia for a date range and can be differentiated based on the different colours. From the plot, we can see how varied returns have been on a daily basis but if we look carefully we can see that there is a certain correlation in the returns and on most days the movement for all 3 technology stocks is in the same direction of either gaining or losing
 ```{r 6_5, echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 df_comb <- df_combined %>% mutate(percent_change = round(((close_price-open_price)/open_price)*100,2))
-ggplot(df_comb, aes(x=timestamp, y=percent_change, color=ticker)) + geom_point()
+ggplot(df_comb, aes(x=timestamp, y=percent_change,color=company_name)) + 
+geom_point()+
+facet_grid(cols = vars(company_name)) + 
+scale_color_discrete(name = "Company Name")
 ```
