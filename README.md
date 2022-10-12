@@ -1197,7 +1197,10 @@ direction of either gaining or losing
 
 ``` r
 df_comb <- df_combined %>% mutate(percent_change = round(((close_price-open_price)/open_price)*100,2))
-ggplot(df_comb, aes(x=timestamp, y=percent_change, color=ticker)) + geom_point()
+ggplot(df_comb, aes(x=timestamp, y=percent_change,color=company_name)) + 
+geom_point()+
+facet_grid(cols = vars(company_name)) + 
+scale_color_discrete(name = "Company Name")
 ```
 
 <img src="README_files/figure-gfm/6_5-1.png" style="display: block; margin: auto;" />
