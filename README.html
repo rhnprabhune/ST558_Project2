@@ -683,7 +683,7 @@ Warrant
 <!--*************************************************************************-->
 
 <h2 id="numerical-summaries">Numerical summaries</h2>
-<p>Here we have created summary Statistics for <strong>open_price</strong> and <strong>close_price</strong> for each company between 2022-01-01 and 2022-08-31.</p>
+<p>Here we have created summary Statistics for <strong>open_price</strong> and <strong>close_price</strong> for each company between 2022-01-01 and 2022-08-31. The summary statistics includes minimum, maximum, median, mean, quartile and standard deviation of prices for the 3 stocks.</p>
 <div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Open Price</span></span>
 <span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>df_combined_open <span class="ot">&lt;-</span> df_combined <span class="sc">%&gt;%</span> </span>
 <span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(company_name) <span class="sc">%&gt;%</span> </span>
@@ -985,8 +985,9 @@ Consistent with the trend from the previous plots, we can see that
 weighted average price for Apple is at the lower end while for Tesla it
 as at higher end. We can also infer from the plots that weighted average
 price for Apple and Tesla roughly follow Gaussian distribution. While
-the spread for Apple around the mean is the least, the spread for Tesla
-around its mean is the most. Probably because of Elon’s Tweets !
+the deviation for Apple around the mean is the least, the deviation for
+Tesla around its mean is the most. Probably because of Elon’s Tweets
+which contribute to volatiltiy to the stock price!
 
 <!--*************************************************************************-->
 

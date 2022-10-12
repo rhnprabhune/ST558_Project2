@@ -845,7 +845,9 @@ exchange.
 ## Numerical summaries
 
 Here we have created summary Statistics for **open\_price** and
-**close\_price** for each company between 2022-01-01 and 2022-08-31.
+**close\_price** for each company between 2022-01-01 and 2022-08-31. The
+summary statistics includes minimum, maximum, median, mean, quartile and
+standard deviation of prices for the 3 stocks.
 
 ``` r
 # Open Price
@@ -1170,8 +1172,9 @@ Consistent with the trend from the previous plots, we can see that
 weighted average price for Apple is at the lower end while for Tesla it
 as at higher end. We can also infer from the plots that weighted average
 price for Apple and Tesla roughly follow Gaussian distribution. While
-the spread for Apple around the mean is the least, the spread for Tesla
-around its mean is the most. Probably because of Elon’s Tweets !
+the deviation for Apple around the mean is the least, the deviation for
+Tesla around its mean is the most. Probably because of Elon’s Tweets
+which contribute to volatiltiy to the stock price!
 
 <!--*************************************************************************-->
 

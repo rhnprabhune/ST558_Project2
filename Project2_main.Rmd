@@ -265,7 +265,7 @@ From the table above we can see that there are 359 **Common Stock** type tickers
 
 <!--*************************************************************************-->
 ## Numerical summaries
-Here we have created summary Statistics for **open_price** and **close_price** for each company between `r start_date` and `r end_date`.  
+Here we have created summary Statistics for **open_price** and **close_price** for each company between `r start_date` and `r end_date`. The summary statistics includes minimum, maximum, median, mean, quartile and standard deviation of prices for the 3 stocks.   
 ```{r 2_4_1,echo=TRUE,eval=TRUE,message=FALSE,warning=FALSE}
 # Open Price
 df_combined_open <- df_combined %>% 
@@ -335,7 +335,7 @@ ggplot(df_combined, aes(x=weighted_avg_price)) +
   scale_fill_discrete(name = "Company Name") + 
   ggtitle(wrapper(my_title, width=80))
 ```
-Consistent with the trend from the previous plots, we can see that weighted average price for Apple is at the lower end while for Tesla it as at higher end. We can also infer from the plots that weighted average price for Apple and Tesla roughly follow Gaussian distribution. While the spread for Apple around the mean is the least, the spread for Tesla around its mean is the most. Probably because of Elon's Tweets ! 
+Consistent with the trend from the previous plots, we can see that weighted average price for Apple is at the lower end while for Tesla it as at higher end. We can also infer from the plots that weighted average price for Apple and Tesla roughly follow Gaussian distribution. While the deviation for Apple around the mean is the least, the deviation for Tesla around its mean is the most. Probably because of Elon's Tweets which contribute to volatiltiy to the stock price!  
 
 <!--*************************************************************************-->
 
