@@ -34,7 +34,7 @@ library(kableExtra)
 This section describes the functions created by us to interact with the API endpoints to fetch data as well as some metadata required for making the plots more descriptive.  
 
 ### [Aggregates (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to) Endpoint  
-Get financoal data for a stock within a given time frame
+Get financial data for a stock within a given time frame
 
 #### `get_stocks_agg`
 This function has four modifications from the user. The user can provide the following inputs to the functions:  
@@ -66,7 +66,7 @@ get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
 ```
 
 ### [Tickers](https://polygon.io/docs/stocks/get_v3_reference_tickers) Endpoint  
-Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Cryptocurrencies, and Currencies or Foreign Exchange.  
+Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Cryptocurrencies, and Currencies/Foreign Exchange.  
 
 #### `get_ticker`
 This function searches only the stock market. The user can provide the name of the company which they would like the ticker information for For example: If a user wants the ticker, the ticker information for Apple, the user can call the function as `get_ticker(name="Apple")`. This function will return the ticker symbol **AAPL** and the registered company name **Apple Inc.** as a list. The user can pass on the contents of this list to `get_stocks_agg` function mentioned above to get the aggregate bars over a date range. If there are multiple matches for a given name, the function returns the first ticker information from the list of matches.  

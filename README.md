@@ -76,7 +76,7 @@ the plots more descriptive.
 
 ### [Aggregates (Bars)](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to) Endpoint
 
-Get financoal data for a stock within a given time frame
+Get financial data for a stock within a given time frame
 
 #### `get_stocks_agg`
 
@@ -119,8 +119,8 @@ get_stocks_agg <- function(ticker,company_name,start_date="2022-01-01",
 ### [Tickers](https://polygon.io/docs/stocks/get_v3_reference_tickers) Endpoint
 
 Query all ticker symbols which are supported by Polygon.io. This API
-currently includes Stocks/Equities, Cryptocurrencies, and Currencies or
-Foreign Exchange.
+currently includes Stocks/Equities, Cryptocurrencies, and
+Currencies/Foreign Exchange.
 
 #### `get_ticker`
 

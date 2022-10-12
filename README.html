@@ -98,7 +98,7 @@ The API that we have chosen for this project is <a href="https://polygon.io/docs
 <h2 id="api-interaction-functions">API Interaction Functions</h2>
 <p>This section describes the functions created by us to interact with the API endpoints to fetch data as well as some metadata required for making the plots more descriptive.</p>
 <h3 id="aggregates-bars-endpoint"><a href="https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to">Aggregates (Bars)</a> Endpoint</h3>
-<p>Get financoal data for a stock within a given time frame</p>
+<p>Get financial data for a stock within a given time frame</p>
 <h4 id="get_stocks_agg"><code>get_stocks_agg</code></h4>
 <p>This function has four modifications from the user. The user can provide the following inputs to the functions:</p>
 <ul>
@@ -126,7 +126,7 @@ The API that we have chosen for this project is <a href="https://polygon.io/docs
 <span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(df)</span>
 <span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <h3 id="tickers-endpoint"><a href="https://polygon.io/docs/stocks/get_v3_reference_tickers">Tickers</a> Endpoint</h3>
-<p>Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Cryptocurrencies, and Currencies or Foreign Exchange.</p>
+<p>Query all ticker symbols which are supported by Polygon.io. This API currently includes Stocks/Equities, Cryptocurrencies, and Currencies/Foreign Exchange.</p>
 <h4 id="get_ticker"><code>get_ticker</code></h4>
 <p>This function searches only the stock market. The user can provide the name of the company which they would like the ticker information for For example: If a user wants the ticker, the ticker information for Apple, the user can call the function as <code>get_ticker(name=&quot;Apple&quot;)</code>. This function will return the ticker symbol <strong>AAPL</strong> and the registered company name <strong>Apple Inc.</strong> as a list. The user can pass on the contents of this list to <code>get_stocks_agg</code> function mentioned above to get the aggregate bars over a date range. If there are multiple matches for a given name, the function returns the first ticker information from the list of matches.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>get_ticker <span class="ot">&lt;-</span> <span class="cf">function</span>(name){</span>
